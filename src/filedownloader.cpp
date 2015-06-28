@@ -23,8 +23,8 @@
 
 #include "filedownloader.h"
 
-FileDownloader::FileDownloader(const QUrl &url, QObject *p) : QObject(p), m_WebCtrl(),
-	m_DownloadedData(), m_url(url), m_rawHeaderPairs(), m_reply(0L) {
+FileDownloader::FileDownloader(const QUrl &url, const char *userAgent, QObject *p) :
+	QObject(p), m_WebCtrl(), m_DownloadedData(), m_url(url), m_rawHeaderPairs(), m_reply(0L) {
 
 	QObject::connect(&m_WebCtrl, SIGNAL(finished(QNetworkReply*)),
 					 SLOT(fileDownloaded(QNetworkReply*)));
@@ -36,6 +36,7 @@ FileDownloader::FileDownloader(const QUrl &url, QObject *p) : QObject(p), m_WebC
 	cnf.setProtocol(QSsl::AnyProtocol);
 
 	request.setSslConfiguration(cnf);
+	request.setRawHeader("User-Agent", QByteArray(userAgent));
 	request.setAttribute(QNetworkRequest::CacheLoadControlAttribute,
 						 QNetworkRequest::AlwaysNetwork);
 

@@ -30,7 +30,7 @@ class QGITHUBRELEASEAPI_NO_EXPORT FileDownloader : public QObject {
 	Q_OBJECT
 	Q_DISABLE_COPY(FileDownloader)
 public:
-	explicit FileDownloader(const QUrl &url, QObject *parent = 0L);
+	explicit FileDownloader(const QUrl &url, const char *userAgent, QObject *parent = 0L);
 	virtual ~FileDownloader();
 
 	inline QUrl url() const {

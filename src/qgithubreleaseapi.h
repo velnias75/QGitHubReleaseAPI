@@ -44,6 +44,8 @@ public:
 
 	virtual ~QGitHubReleaseAPI();
 
+	static void setUserAgent(const char *ua);
+
 	QUrl url() const;
 
 	int entries() const;

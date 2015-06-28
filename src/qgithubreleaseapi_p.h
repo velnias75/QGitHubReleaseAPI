@@ -42,6 +42,10 @@ public:
 
 	virtual ~QGitHubReleaseAPIPrivate();
 
+	inline static void setUserAgent(const char *ua) {
+		m_userAgent = ua;
+	}
+
 	QUrl url() const;
 
 	int entries() const;
@@ -86,6 +90,8 @@ private:
 	bool dataAvailable() const;
 
 private:
+	static const char *m_userAgent QGITHUBRELEASEAPI_EXPORT;
+
 	const FileDownloader *m_downloader;
 	QByteArray m_jsonData;
 	QVariantList m_vdata;

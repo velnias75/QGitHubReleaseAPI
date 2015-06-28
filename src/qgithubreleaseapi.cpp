@@ -62,6 +62,10 @@ void QGitHubReleaseAPI::init() const {
 					 this, SLOT(apiDownloadProgress(qint64,qint64)));
 }
 
+void QGitHubReleaseAPI::setUserAgent(const char *ua) {
+	QGitHubReleaseAPIPrivate::setUserAgent(ua);
+}
+
 void QGitHubReleaseAPI::apiAvailable() {
 	emit available();
 }

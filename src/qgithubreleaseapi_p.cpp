@@ -39,9 +39,11 @@ const char *OOB = QT_TRANSLATE_NOOP("QGitHubReleaseAPIPrivate", "Index %1 >= %2 
 const char *NDA = QT_TRANSLATE_NOOP("QGitHubReleaseAPIPrivate", "No data available");
 }
 
+const char *QGitHubReleaseAPIPrivate::m_userAgent = "QGitHubReleaseAPI";
+
 QGitHubReleaseAPIPrivate::QGitHubReleaseAPIPrivate(const QUrl &apiUrl, bool multi, QObject *p) :
-	QObject(p), m_downloader(new FileDownloader(apiUrl)), m_jsonData(), m_errorString(),
-	m_rateLimit(0), m_rateLimitRemaining(0), m_singleEntryRequested(!multi) {
+	QObject(p), m_downloader(new FileDownloader(apiUrl, m_userAgent)), m_jsonData(),
+	m_errorString(), m_rateLimit(0), m_rateLimitRemaining(0), m_singleEntryRequested(!multi) {
 	init();
 }
 
@@ -50,7 +52,7 @@ QGitHubReleaseAPIPrivate::QGitHubReleaseAPIPrivate(const QString &user, const QS
 	m_downloader(new FileDownloader(QUrl(QString("https://api.github.com/repos/%1/%2/releases%3")
 										 .arg(QString(QUrl::toPercentEncoding(user)))
 										 .arg(QString(QUrl::toPercentEncoding(repo)))
-										 .arg(latest ? "/latest" : "")))),
+										 .arg(latest ? "/latest" : "")), m_userAgent)),
 	m_jsonData(), m_errorString(), m_rateLimit(0), m_rateLimitRemaining(0),
 	m_singleEntryRequested(latest) {
 	init();
@@ -62,9 +64,9 @@ QGitHubReleaseAPIPrivate::QGitHubReleaseAPIPrivate(const QString &user, const QS
 												 "/releases/tags/%3")
 										 .arg(QString(QUrl::toPercentEncoding(user)))
 										 .arg(QString(QUrl::toPercentEncoding(repo)))
-										 .arg(QString(QUrl::toPercentEncoding(tag)))))),
-	m_jsonData(), m_errorString(), m_rateLimit(0), m_rateLimitRemaining(0),
-	m_singleEntryRequested(true) {
+										 .arg(QString(QUrl::toPercentEncoding(tag)))),
+									m_userAgent)), m_jsonData(), m_errorString(), m_rateLimit(0),
+	m_rateLimitRemaining(0), m_singleEntryRequested(true) {
 	init();
 }
 
@@ -74,7 +76,7 @@ QGitHubReleaseAPIPrivate::QGitHubReleaseAPIPrivate(const QString &user, const QS
 												 "releases?per_page=%3").
 										 arg(QString(QUrl::toPercentEncoding(user))).
 										 arg(QString(QUrl::toPercentEncoding(repo))).
-										 arg(limit)))), m_jsonData(), m_errorString(),
+										 arg(limit)), m_userAgent)), m_jsonData(), m_errorString(),
 	m_rateLimit(0), m_rateLimitRemaining(0), m_singleEntryRequested(false) {
 	init();
 }
