@@ -24,7 +24,7 @@
 #include "filedownloader.h"
 
 FileDownloader::FileDownloader(const QUrl &url, QObject *p) : QObject(p), m_WebCtrl(),
-	m_DownloadedData(), m_url(url) {
+	m_DownloadedData(), m_url(url), m_rawHeaderPairs(), m_reply(0L) {
 
 	QObject::connect(&m_WebCtrl, SIGNAL(finished(QNetworkReply*)),
 					 SLOT(fileDownloaded(QNetworkReply*)));
@@ -39,16 +39,24 @@ FileDownloader::FileDownloader(const QUrl &url, QObject *p) : QObject(p), m_WebC
 	request.setAttribute(QNetworkRequest::CacheLoadControlAttribute,
 						 QNetworkRequest::AlwaysNetwork);
 
-	m_WebCtrl.get(request);
+	m_reply = m_WebCtrl.get(request);
+
+	QObject::connect(m_reply, SIGNAL(downloadProgress(qint64,qint64)),
+					 this, SLOT(downloadProgress(qint64,qint64)));
 }
 
 FileDownloader::~FileDownloader() {}
+
+void FileDownloader::downloadProgress(qint64 bytesReceived, qint64 bytesTotal) {
+	emit progress(bytesReceived, bytesTotal);
+}
 
 void FileDownloader::fileDownloaded(QNetworkReply *pReply) {
 
 	if(pReply->error() != QNetworkReply::NoError) {
 		emit error(pReply->errorString());
 	} else {
+		m_rawHeaderPairs = pReply->rawHeaderPairs();
 		m_DownloadedData = pReply->readAll();
 		pReply->deleteLater();
 		emit downloaded();

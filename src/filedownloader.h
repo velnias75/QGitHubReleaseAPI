@@ -21,11 +21,10 @@
 #define FILEDOWNLOADER_H
 
 #include <QUrl>
+#include <QNetworkReply>
 #include <QNetworkAccessManager>
 
 #include "export.h"
-
-class QNetworkReply;
 
 class QGITHUBRELEASEAPI_NO_EXPORT FileDownloader : public QObject {
 	Q_OBJECT
@@ -40,17 +39,25 @@ public:
 
 	const QByteArray &downloadedData() const;
 
+	inline QList<QNetworkReply::RawHeaderPair> rawHeaderPairs() const {
+		return m_rawHeaderPairs;
+	}
+
 signals:
 	void downloaded();
 	void error(const QString &);
+	void progress(qint64, qint64);
 
 private slots:
 	void fileDownloaded(QNetworkReply *pReply);
+	void downloadProgress(qint64, qint64);
 
 private:
 	QNetworkAccessManager m_WebCtrl;
 	QByteArray m_DownloadedData;
 	QUrl m_url;
+	QList<QNetworkReply::RawHeaderPair> m_rawHeaderPairs;
+	QNetworkReply *m_reply;
 };
 
 #endif // FILEDOWNLOADER_H

@@ -33,9 +33,14 @@ class QGITHUBRELEASEAPI_EXPORT QGitHubReleaseAPI : public QObject {
 	Q_DISABLE_COPY(QGitHubReleaseAPI)
 
 public:
-	QGitHubReleaseAPI(const QUrl &apiUrl, QObject *parent = 0);
-	QGitHubReleaseAPI(const QString &user, const QString &repo, QObject *p = 0);
-	QGitHubReleaseAPI(const QString &user, const QString &repo, int limit, QObject *parent = 0);
+	QGitHubReleaseAPI(const QUrl &apiUrl, bool multi = true, QObject *parent = 0);
+	QGitHubReleaseAPI(const QString &user, const QString &repo, bool latest = true,
+					  QObject *parent = 0);
+	QGitHubReleaseAPI(const QString &user, const QString &repo, const QString &tag,
+					  QObject *parent = 0);
+	QGitHubReleaseAPI(const QString &user, const QString &repo, const char *tag,
+					  QObject *parent = 0);
+	QGitHubReleaseAPI(const QString &user, const QString &repo, int perPage, QObject *parent = 0);
 
 	virtual ~QGitHubReleaseAPI();
 
@@ -49,14 +54,24 @@ public:
 	QDateTime publishedAt(int idx = 0) const;
 
 	QVariantList toVariantList() const;
+	QByteArray asJsonData() const;
+
+	uint rateLimit() const;
+	uint rateLimitRemaining() const;
+	QDateTime rateLimitReset() const;
 
 signals:
 	void available();
 	void error(const QString &);
+	void progress(qint64 bytesReceived, qint64 bytesTotal);
 
 private slots:
 	void apiAvailable();
 	void apiError(const QString &);
+	void apiDownloadProgress(qint64, qint64);
+
+private:
+	void init() const;
 
 private:
 	QGitHubReleaseAPIPrivate *const d_ptr;

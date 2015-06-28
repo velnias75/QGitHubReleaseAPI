@@ -21,11 +21,11 @@
 #define QGITHUBRELEASEAPI_P_H
 
 #include <QUrl>
+#include <QDateTime>
 #include <QVariantList>
 
 #include "export.h"
 
-class QDateTime;
 class FileDownloader;
 
 class QGITHUBRELEASEAPI_NO_EXPORT QGitHubReleaseAPIPrivate : public QObject {
@@ -33,8 +33,10 @@ class QGITHUBRELEASEAPI_NO_EXPORT QGitHubReleaseAPIPrivate : public QObject {
 	Q_DISABLE_COPY(QGitHubReleaseAPIPrivate)
 
 public:
-	QGitHubReleaseAPIPrivate(const QUrl &apiUrl, QObject *parent = 0);
-	QGitHubReleaseAPIPrivate(const QString &user, const QString &repo, QObject *p = 0);
+	QGitHubReleaseAPIPrivate(const QUrl &apiUrl, bool multi, QObject *parent = 0);
+	QGitHubReleaseAPIPrivate(const QString &user, const QString &repo, bool latest, QObject *p = 0);
+	QGitHubReleaseAPIPrivate(const QString &user, const QString &repo, const QString &tag,
+							 QObject *parent = 0);
 	QGitHubReleaseAPIPrivate(const QString &user, const QString &repo, int limit,
 							 QObject *parent = 0);
 
@@ -53,21 +55,45 @@ public:
 		return m_vdata;
 	}
 
+	inline QByteArray asJsonData() const {
+		return m_jsonData;
+	}
+
+	inline uint rateLimit() const {
+		return m_rateLimit;
+	}
+
+	inline uint rateLimitRemaining() const {
+		return m_rateLimitRemaining;
+	}
+
+	inline QDateTime rateLimitReset() const {
+		return m_rateLimitReset;
+	}
+
 private slots:
 	void downloaded();
 	void fdError(const QString &);
+	void downloadProgress(qint64, qint64);
 
 signals:
 	void available();
 	void error(const QString &) const;
+	void progress(qint64, qint64);
 
 private:
+	void init() const;
 	bool dataAvailable() const;
 
 private:
 	const FileDownloader *m_downloader;
+	QByteArray m_jsonData;
 	QVariantList m_vdata;
 	QString m_errorString;
+	uint m_rateLimit;
+	uint m_rateLimitRemaining;
+	bool m_singleEntryRequested;
+	QDateTime m_rateLimitReset;
 };
 
 #endif // QGITHUBRELEASEAPI_P_H

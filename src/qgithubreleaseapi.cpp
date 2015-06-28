@@ -23,30 +23,44 @@
 
 #include "qgithubreleaseapi_p.h"
 
-QGitHubReleaseAPI::QGitHubReleaseAPI(const QUrl &apiUrl, QObject *p) : QObject(p),
-	d_ptr(new QGitHubReleaseAPIPrivate(apiUrl, this)) {
-	Q_D(const QGitHubReleaseAPI);
-	QObject::connect(d, SIGNAL(available()), this, SLOT(apiAvailable()));
-	QObject::connect(d, SIGNAL(error(QString)), this, SLOT(apiError(QString)));
+QGitHubReleaseAPI::QGitHubReleaseAPI(const QUrl &apiUrl, bool multi, QObject *p) : QObject(p),
+	d_ptr(new QGitHubReleaseAPIPrivate(apiUrl, multi, this)) {
+	init();
 }
 
-QGitHubReleaseAPI::QGitHubReleaseAPI(const QString &user, const QString &repo,
+QGitHubReleaseAPI::QGitHubReleaseAPI(const QString &user, const QString &repo, bool latest,
 									 QObject *p) : QObject(p),
-	d_ptr(new QGitHubReleaseAPIPrivate(user, repo, this)) {
-	Q_D(const QGitHubReleaseAPI);
-	QObject::connect(d, SIGNAL(available()), this, SLOT(apiAvailable()));
-	QObject::connect(d, SIGNAL(error(QString)), this, SLOT(apiError(QString)));
+	d_ptr(new QGitHubReleaseAPIPrivate(user, repo, latest, this)) {
+	init();
 }
 
-QGitHubReleaseAPI::QGitHubReleaseAPI(const QString &user, const QString &repo, int limit,
+QGitHubReleaseAPI::QGitHubReleaseAPI(const QString &user, const QString &repo, const QString &tag,
 									 QObject *p) : QObject(p),
-	d_ptr(new QGitHubReleaseAPIPrivate(user, repo, limit, this)) {
-	Q_D(const QGitHubReleaseAPI);
-	QObject::connect(d, SIGNAL(available()), this, SLOT(apiAvailable()));
-	QObject::connect(d, SIGNAL(error(QString)), this, SLOT(apiError(QString)));
+	d_ptr(new QGitHubReleaseAPIPrivate(user, repo, tag, this)) {
+	init();
+}
+
+QGitHubReleaseAPI::QGitHubReleaseAPI(const QString &user, const QString &repo, const char *tag,
+									 QObject *p) : QObject(p),
+	d_ptr(new QGitHubReleaseAPIPrivate(user, repo, QString(tag), this)) {
+	init();
+}
+
+QGitHubReleaseAPI::QGitHubReleaseAPI(const QString &user, const QString &repo, int perPage,
+									 QObject *p) : QObject(p),
+	d_ptr(new QGitHubReleaseAPIPrivate(user, repo, perPage, this)) {
+	init();
 }
 
 QGitHubReleaseAPI::~QGitHubReleaseAPI() {}
+
+void QGitHubReleaseAPI::init() const {
+	Q_D(const QGitHubReleaseAPI);
+	QObject::connect(d, SIGNAL(available()), this, SLOT(apiAvailable()));
+	QObject::connect(d, SIGNAL(error(QString)), this, SLOT(apiError(QString)));
+	QObject::connect(d, SIGNAL(progress(qint64,qint64)),
+					 this, SLOT(apiDownloadProgress(qint64,qint64)));
+}
 
 void QGitHubReleaseAPI::apiAvailable() {
 	emit available();
@@ -54,6 +68,10 @@ void QGitHubReleaseAPI::apiAvailable() {
 
 void QGitHubReleaseAPI::apiError(const QString &err) {
 	emit error(err);
+}
+
+void QGitHubReleaseAPI::apiDownloadProgress(qint64 br, qint64 bt) {
+	emit progress(br, bt);
 }
 
 QUrl QGitHubReleaseAPI::url() const {
@@ -89,4 +107,24 @@ QDateTime QGitHubReleaseAPI::publishedAt(int idx) const {
 QVariantList QGitHubReleaseAPI::toVariantList() const {
 	Q_D(const QGitHubReleaseAPI);
 	return d->toVariantList();
+}
+
+QByteArray QGitHubReleaseAPI::asJsonData() const {
+	Q_D(const QGitHubReleaseAPI);
+	return d->asJsonData();
+}
+
+uint QGitHubReleaseAPI::rateLimit() const {
+	Q_D(const QGitHubReleaseAPI);
+	return d->rateLimit();
+}
+
+uint QGitHubReleaseAPI::rateLimitRemaining() const {
+	Q_D(const QGitHubReleaseAPI);
+	return d->rateLimitRemaining();
+}
+
+QDateTime QGitHubReleaseAPI::rateLimitReset() const {
+	Q_D(const QGitHubReleaseAPI);
+	return d->rateLimitReset();
 }

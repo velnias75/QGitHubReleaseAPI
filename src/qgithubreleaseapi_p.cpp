@@ -17,8 +17,6 @@
  * along with NetMauMau Qt Client.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QDateTime>
-
 #include "qgithubreleaseapi_p.h"
 
 #include "filedownloader.h"
@@ -41,20 +39,33 @@ const char *OOB = QT_TRANSLATE_NOOP("QGitHubReleaseAPIPrivate", "Index %1 >= %2 
 const char *NDA = QT_TRANSLATE_NOOP("QGitHubReleaseAPIPrivate", "No data available");
 }
 
-QGitHubReleaseAPIPrivate::QGitHubReleaseAPIPrivate(const QUrl &apiUrl, QObject *p) : QObject(p),
-	m_downloader(new FileDownloader(apiUrl)), m_errorString() {
-	QObject::connect(m_downloader, SIGNAL(error(QString)), this, SLOT(fdError(QString)));
-	QObject::connect(m_downloader, SIGNAL(downloaded()), this, SLOT(downloaded()));
+QGitHubReleaseAPIPrivate::QGitHubReleaseAPIPrivate(const QUrl &apiUrl, bool multi, QObject *p) :
+	QObject(p), m_downloader(new FileDownloader(apiUrl)), m_jsonData(), m_errorString(),
+	m_rateLimit(0), m_rateLimitRemaining(0), m_singleEntryRequested(!multi) {
+	init();
 }
 
 QGitHubReleaseAPIPrivate::QGitHubReleaseAPIPrivate(const QString &user, const QString &repo,
-												   QObject *p) : QObject(p),
-	m_downloader(new FileDownloader(QUrl(QString("https://api.github.com/repos/%1/%2/releases")
+												   bool latest, QObject *p) : QObject(p),
+	m_downloader(new FileDownloader(QUrl(QString("https://api.github.com/repos/%1/%2/releases%3")
 										 .arg(QString(QUrl::toPercentEncoding(user)))
-										 .arg(QString(QUrl::toPercentEncoding(repo)))))),
-	m_errorString() {
-	QObject::connect(m_downloader, SIGNAL(error(QString)), this, SLOT(fdError(QString)));
-	QObject::connect(m_downloader, SIGNAL(downloaded()), this, SLOT(downloaded()));
+										 .arg(QString(QUrl::toPercentEncoding(repo)))
+										 .arg(latest ? "/latest" : "")))),
+	m_jsonData(), m_errorString(), m_rateLimit(0), m_rateLimitRemaining(0),
+	m_singleEntryRequested(latest) {
+	init();
+}
+
+QGitHubReleaseAPIPrivate::QGitHubReleaseAPIPrivate(const QString &user, const QString &repo,
+												   const QString &tag, QObject *p) : QObject(p),
+	m_downloader(new FileDownloader(QUrl(QString("https://api.github.com/repos/%1/%2" \
+												 "/releases/tags/%3")
+										 .arg(QString(QUrl::toPercentEncoding(user)))
+										 .arg(QString(QUrl::toPercentEncoding(repo)))
+										 .arg(QString(QUrl::toPercentEncoding(tag)))))),
+	m_jsonData(), m_errorString(), m_rateLimit(0), m_rateLimitRemaining(0),
+	m_singleEntryRequested(true) {
+	init();
 }
 
 QGitHubReleaseAPIPrivate::QGitHubReleaseAPIPrivate(const QString &user, const QString &repo,
@@ -63,13 +74,20 @@ QGitHubReleaseAPIPrivate::QGitHubReleaseAPIPrivate(const QString &user, const QS
 												 "releases?per_page=%3").
 										 arg(QString(QUrl::toPercentEncoding(user))).
 										 arg(QString(QUrl::toPercentEncoding(repo))).
-										 arg(limit)))), m_errorString() {
-	QObject::connect(m_downloader, SIGNAL(error(QString)), this, SLOT(fdError(QString)));
-	QObject::connect(m_downloader, SIGNAL(downloaded()), this, SLOT(downloaded()));
+										 arg(limit)))), m_jsonData(), m_errorString(),
+	m_rateLimit(0), m_rateLimitRemaining(0), m_singleEntryRequested(false) {
+	init();
 }
 
 QGitHubReleaseAPIPrivate::~QGitHubReleaseAPIPrivate() {
 	delete m_downloader;
+}
+
+void QGitHubReleaseAPIPrivate::init() const {
+	QObject::connect(m_downloader, SIGNAL(error(QString)), this, SLOT(fdError(QString)));
+	QObject::connect(m_downloader, SIGNAL(downloaded()), this, SLOT(downloaded()));
+	QObject::connect(m_downloader, SIGNAL(progress(qint64,qint64)),
+					 this, SLOT(downloadProgress(qint64,qint64)));
 }
 
 QString QGitHubReleaseAPIPrivate::name(int idx) const {
@@ -164,9 +182,26 @@ QString QGitHubReleaseAPIPrivate::body(int idx) const {
 	return QString::null;
 }
 
+void QGitHubReleaseAPIPrivate::downloadProgress(qint64 br, qint64 bt) {
+	emit progress(br, bt);
+}
+
 void QGitHubReleaseAPIPrivate::downloaded() {
 
-	const QByteArray &dld(m_downloader->downloadedData());
+	m_jsonData = m_downloader->downloadedData();
+
+	foreach(const QNetworkReply::RawHeaderPair &pair, m_downloader->rawHeaderPairs()) {
+
+		if(pair.first == "X-RateLimit-Reset") {
+			m_rateLimitReset = QDateTime::fromTime_t(QString(pair.second).toUInt());
+		}
+
+		if(pair.first == "X-RateLimit-Limit") m_rateLimit = QString(pair.second).toUInt();
+
+		if(pair.first == "X-RateLimit-Remaining") {
+			m_rateLimitRemaining = QString(pair.second).toUInt();
+		}
+	}
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0) || defined(QJSON_FOUND)
 #if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
@@ -177,9 +212,17 @@ void QGitHubReleaseAPIPrivate::downloaded() {
 #endif
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
-	m_vdata = QJsonDocument::fromJson(dld, &ok).toVariant().toList();
+	if(m_singleEntryRequested) {
+		m_vdata.append(QJsonDocument::fromJson(m_jsonData, &ok).toVariant());
+	} else {
+		m_vdata = QJsonDocument::fromJson(m_jsonData, &ok).toVariant().toList();
+	}
 #else
-	m_vdata = parser.parse(dld, &ok).toList();
+	if(m_singleEntryRequested) {
+		m_vdata.append(parser.parse(m_jsonData, &ok));
+	} else {
+		m_vdata = parser.parse(m_jsonData, &ok).toList();
+	}
 #endif
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
@@ -196,7 +239,7 @@ void QGitHubReleaseAPIPrivate::downloaded() {
 		qWarning("QJson: %s", m_errorString.toStdString().c_str());
 #endif
 		emit error(m_errorString);
-	} else if(!dld.isEmpty()) {
+	} else if(!m_jsonData.isEmpty()) {
 		emit available();
 	}
 #endif
