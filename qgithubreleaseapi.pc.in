@@ -1,0 +1,16 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+package_name=@CMAKE_PROJECT_NAME@
+version=0.1
+
+libdir=${prefix}/lib
+lib_name=qgithubreleaseapi
+
+includedir=${prefix}/include/qgithubreleaseapi
+
+Name: @CMAKE_PROJECT_NAME@
+Description: tbw
+URL: https://github.com/velnias75/NetMauMau/
+Version: ${version}
+@QJSON_REQUIRED@
+Libs: -L${libdir} -l${lib_name}
+Cflags: -I${includedir}
