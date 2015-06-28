@@ -43,6 +43,28 @@ const char *NDA = QT_TRANSLATE_NOOP("QGitHubReleaseAPIPrivate", "No data availab
 
 QGitHubReleaseAPIPrivate::QGitHubReleaseAPIPrivate(const QUrl &apiUrl, QObject *p) : QObject(p),
 	m_downloader(new FileDownloader(apiUrl)), m_errorString() {
+	QObject::connect(m_downloader, SIGNAL(error(QString)), this, SLOT(fdError(QString)));
+	QObject::connect(m_downloader, SIGNAL(downloaded()), this, SLOT(downloaded()));
+}
+
+QGitHubReleaseAPIPrivate::QGitHubReleaseAPIPrivate(const QString &user, const QString &repo,
+												   QObject *p) : QObject(p),
+	m_downloader(new FileDownloader(QUrl(QString("https://api.github.com/repos/%1/%2/releases")
+										 .arg(QString(QUrl::toPercentEncoding(user)))
+										 .arg(QString(QUrl::toPercentEncoding(repo)))))),
+	m_errorString() {
+	QObject::connect(m_downloader, SIGNAL(error(QString)), this, SLOT(fdError(QString)));
+	QObject::connect(m_downloader, SIGNAL(downloaded()), this, SLOT(downloaded()));
+}
+
+QGitHubReleaseAPIPrivate::QGitHubReleaseAPIPrivate(const QString &user, const QString &repo,
+												   int limit, QObject *p) : QObject(p),
+	m_downloader(new FileDownloader(QUrl(QString("https://api.github.com/repos/%1/%2/" \
+												 "releases?per_page=%3").
+										 arg(QString(QUrl::toPercentEncoding(user))).
+										 arg(QString(QUrl::toPercentEncoding(repo))).
+										 arg(limit)))), m_errorString() {
+	QObject::connect(m_downloader, SIGNAL(error(QString)), this, SLOT(fdError(QString)));
 	QObject::connect(m_downloader, SIGNAL(downloaded()), this, SLOT(downloaded()));
 }
 
@@ -180,8 +202,16 @@ void QGitHubReleaseAPIPrivate::downloaded() {
 #endif
 }
 
+void QGitHubReleaseAPIPrivate::fdError(const QString &err) {
+	emit error(QString("network error: %1").arg(err));
+}
+
 bool QGitHubReleaseAPIPrivate::dataAvailable() const {
 	return !m_vdata.isEmpty();
+}
+
+QUrl QGitHubReleaseAPIPrivate::url() const {
+	return m_downloader->url();
 }
 
 int QGitHubReleaseAPIPrivate::entries() const {

@@ -20,11 +20,11 @@
 #ifndef QGITHUBRELEASEAPI_P_H
 #define QGITHUBRELEASEAPI_P_H
 
+#include <QUrl>
 #include <QVariantList>
 
 #include "export.h"
 
-class QUrl;
 class QDateTime;
 class FileDownloader;
 
@@ -33,8 +33,14 @@ class QGITHUBRELEASEAPI_NO_EXPORT QGitHubReleaseAPIPrivate : public QObject {
 	Q_DISABLE_COPY(QGitHubReleaseAPIPrivate)
 
 public:
-	explicit QGitHubReleaseAPIPrivate(const QUrl &apiUrl, QObject *parent = 0);
-	~QGitHubReleaseAPIPrivate();
+	QGitHubReleaseAPIPrivate(const QUrl &apiUrl, QObject *parent = 0);
+	QGitHubReleaseAPIPrivate(const QString &user, const QString &repo, QObject *p = 0);
+	QGitHubReleaseAPIPrivate(const QString &user, const QString &repo, int limit,
+							 QObject *parent = 0);
+
+	virtual ~QGitHubReleaseAPIPrivate();
+
+	QUrl url() const;
 
 	int entries() const;
 
@@ -43,8 +49,13 @@ public:
 	QString tagName(int idx) const;
 	QDateTime publishedAt(int idx) const;
 
+	inline QVariantList toVariantList() const {
+		return m_vdata;
+	}
+
 private slots:
 	void downloaded();
+	void fdError(const QString &);
 
 signals:
 	void available();

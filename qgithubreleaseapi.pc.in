@@ -1,6 +1,6 @@
 prefix=@CMAKE_INSTALL_PREFIX@
 package_name=@CMAKE_PROJECT_NAME@
-version=0.1
+version=@PROJECT_VERSION@
 
 libdir=${prefix}/lib
 lib_name=qgithubreleaseapi
@@ -8,8 +8,8 @@ lib_name=qgithubreleaseapi
 includedir=${prefix}/include/qgithubreleaseapi
 
 Name: @CMAKE_PROJECT_NAME@
-Description: tbw
-URL: https://github.com/velnias75/NetMauMau/
+Description:  Qt library to receive release information from the GitHub API
+URL: https://github.com/velnias75/QGitHubReleaseAPI
 Version: ${version}
 @QJSON_REQUIRED@
 Libs: -L${libdir} -l${lib_name}

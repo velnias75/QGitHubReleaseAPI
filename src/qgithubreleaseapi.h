@@ -20,11 +20,11 @@
 #ifndef QGITHUBRELEASEAPI_H
 #define QGITHUBRELEASEAPI_H
 
-#include <QObject>
+#include <QUrl>
+#include <QVariantList>
 
 #include "export.h"
 
-class QUrl;
 class QDateTime;
 class QGitHubReleaseAPIPrivate;
 
@@ -34,6 +34,12 @@ class QGITHUBRELEASEAPI_EXPORT QGitHubReleaseAPI : public QObject {
 
 public:
 	QGitHubReleaseAPI(const QUrl &apiUrl, QObject *parent = 0);
+	QGitHubReleaseAPI(const QString &user, const QString &repo, QObject *p = 0);
+	QGitHubReleaseAPI(const QString &user, const QString &repo, int limit, QObject *parent = 0);
+
+	virtual ~QGitHubReleaseAPI();
+
+	QUrl url() const;
 
 	int entries() const;
 
@@ -41,6 +47,8 @@ public:
 	QString body(int idx = 0) const;
 	QString tagName(int idx = 0) const;
 	QDateTime publishedAt(int idx = 0) const;
+
+	QVariantList toVariantList() const;
 
 signals:
 	void available();

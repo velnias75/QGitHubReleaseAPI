@@ -25,11 +25,28 @@
 
 QGitHubReleaseAPI::QGitHubReleaseAPI(const QUrl &apiUrl, QObject *p) : QObject(p),
 	d_ptr(new QGitHubReleaseAPIPrivate(apiUrl, this)) {
-
 	Q_D(const QGitHubReleaseAPI);
 	QObject::connect(d, SIGNAL(available()), this, SLOT(apiAvailable()));
 	QObject::connect(d, SIGNAL(error(QString)), this, SLOT(apiError(QString)));
 }
+
+QGitHubReleaseAPI::QGitHubReleaseAPI(const QString &user, const QString &repo,
+									 QObject *p) : QObject(p),
+	d_ptr(new QGitHubReleaseAPIPrivate(user, repo, this)) {
+	Q_D(const QGitHubReleaseAPI);
+	QObject::connect(d, SIGNAL(available()), this, SLOT(apiAvailable()));
+	QObject::connect(d, SIGNAL(error(QString)), this, SLOT(apiError(QString)));
+}
+
+QGitHubReleaseAPI::QGitHubReleaseAPI(const QString &user, const QString &repo, int limit,
+									 QObject *p) : QObject(p),
+	d_ptr(new QGitHubReleaseAPIPrivate(user, repo, limit, this)) {
+	Q_D(const QGitHubReleaseAPI);
+	QObject::connect(d, SIGNAL(available()), this, SLOT(apiAvailable()));
+	QObject::connect(d, SIGNAL(error(QString)), this, SLOT(apiError(QString)));
+}
+
+QGitHubReleaseAPI::~QGitHubReleaseAPI() {}
 
 void QGitHubReleaseAPI::apiAvailable() {
 	emit available();
@@ -37,6 +54,11 @@ void QGitHubReleaseAPI::apiAvailable() {
 
 void QGitHubReleaseAPI::apiError(const QString &err) {
 	emit error(err);
+}
+
+QUrl QGitHubReleaseAPI::url() const {
+	Q_D(const QGitHubReleaseAPI);
+	return d->url();
 }
 
 int  QGitHubReleaseAPI::entries() const {
@@ -62,4 +84,9 @@ QString QGitHubReleaseAPI::tagName(int idx) const {
 QDateTime QGitHubReleaseAPI::publishedAt(int idx) const {
 	Q_D(const QGitHubReleaseAPI);
 	return d->publishedAt(idx);
+}
+
+QVariantList QGitHubReleaseAPI::toVariantList() const {
+	Q_D(const QGitHubReleaseAPI);
+	return d->toVariantList();
 }

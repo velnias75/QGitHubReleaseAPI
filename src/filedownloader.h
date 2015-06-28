@@ -20,11 +20,11 @@
 #ifndef FILEDOWNLOADER_H
 #define FILEDOWNLOADER_H
 
+#include <QUrl>
 #include <QNetworkAccessManager>
 
 #include "export.h"
 
-class QUrl;
 class QNetworkReply;
 
 class QGITHUBRELEASEAPI_NO_EXPORT FileDownloader : public QObject {
@@ -34,10 +34,15 @@ public:
 	explicit FileDownloader(const QUrl &url, QObject *parent = 0L);
 	virtual ~FileDownloader();
 
+	inline QUrl url() const {
+		return m_url;
+	}
+
 	const QByteArray &downloadedData() const;
 
 signals:
 	void downloaded();
+	void error(const QString &);
 
 private slots:
 	void fileDownloaded(QNetworkReply *pReply);
@@ -45,6 +50,7 @@ private slots:
 private:
 	QNetworkAccessManager m_WebCtrl;
 	QByteArray m_DownloadedData;
+	QUrl m_url;
 };
 
 #endif // FILEDOWNLOADER_H

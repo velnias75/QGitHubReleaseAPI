@@ -24,7 +24,7 @@
 #include "filedownloader.h"
 
 FileDownloader::FileDownloader(const QUrl &url, QObject *p) : QObject(p), m_WebCtrl(),
-	m_DownloadedData() {
+	m_DownloadedData(), m_url(url) {
 
 	QObject::connect(&m_WebCtrl, SIGNAL(finished(QNetworkReply*)),
 					 SLOT(fileDownloaded(QNetworkReply*)));
@@ -47,14 +47,12 @@ FileDownloader::~FileDownloader() {}
 void FileDownloader::fileDownloaded(QNetworkReply *pReply) {
 
 	if(pReply->error() != QNetworkReply::NoError) {
-		qWarning("%s", pReply->errorString().toStdString().c_str());
+		emit error(pReply->errorString());
+	} else {
+		m_DownloadedData = pReply->readAll();
+		pReply->deleteLater();
+		emit downloaded();
 	}
-
-	m_DownloadedData = pReply->readAll();
-
-	pReply->deleteLater();
-
-	emit downloaded();
 }
 
 const QByteArray &FileDownloader::downloadedData() const {
