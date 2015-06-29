@@ -34,9 +34,9 @@ public:
 	FileDownloader(const QUrl &url, const char *userAgent, QObject *parent = 0L);
 	virtual ~FileDownloader();
 
-	inline void setCacheLoadControlAttribute(QNetworkRequest::CacheLoadControl att) {
-		m_cacheLoadControlAttribute = att;
-	}
+	void start() const;
+
+	void setCacheLoadControlAttribute(QNetworkRequest::CacheLoadControl att);
 
 	inline void setUserData(QVariant &ud) {
 		m_userData = &ud;
@@ -62,13 +62,13 @@ private slots:
 	void downloadProgress(qint64, qint64);
 
 private:
-	QNetworkAccessManager m_WebCtrl;
+	mutable QNetworkAccessManager m_WebCtrl;
 	QByteArray m_DownloadedData;
 	QUrl m_url;
 	QList<QNetworkReply::RawHeaderPair> m_rawHeaderPairs;
-	QNetworkReply *m_reply;
+	mutable QNetworkReply *m_reply;
 	QVariant *m_userData;
-	QNetworkRequest::CacheLoadControl m_cacheLoadControlAttribute;
+	QNetworkRequest m_request;
 };
 
 #endif // FILEDOWNLOADER_H

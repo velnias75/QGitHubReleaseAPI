@@ -66,6 +66,17 @@ public:
 		return entry<QUrl>(idx, "html_url");
 	}
 
+	inline QUrl tarBallUrl(int idx) const {
+		return entry<QUrl>(idx, "tarball_url");
+	}
+
+	QByteArray tarBall(int idx) const;
+	QByteArray zipBall(int idx) const;
+
+	inline QUrl zipBallUrl(int idx) const {
+		return entry<QUrl>(idx, "zipball_url");
+	}
+
 	inline ulong id(int idx) const {
 		return entry<ulong>(idx, "id");
 	}
@@ -77,8 +88,12 @@ public:
 	QString body(int idx) const;
 	QImage avatar(int idx) const;
 
+	inline QString login(int idx) const {
+		return entry<QString>(idx, "login", "author");
+	}
+
 	inline QUrl avatarUrl(int idx) const {
-		return entry<QUrl>(idx, "avatar_url", true);
+		return entry<QUrl>(idx, "avatar_url", "author");
 	}
 
 	inline QString tagName(int idx) const {
@@ -111,11 +126,11 @@ public:
 
 private slots:
 	void downloaded(const FileDownloader &, QVariant *);
-	void imageDownloaded(const FileDownloader &, QVariant *);
+	void fileDownloaded(const FileDownloader &, QVariant *);
 	void fdError(const QString &, QVariant *);
-	void imageError(const QString &, QVariant *);
+	void fileDownloadError(const QString &, QVariant *);
 	void downloadProgress(qint64, qint64, QVariant *);
-	void imageProgress(qint64, qint64, QVariant *);
+	void fileDownloadProgress(qint64, qint64, QVariant *);
 
 signals:
 	void available();
@@ -125,18 +140,19 @@ signals:
 
 private:
 	void init() const;
+	QVariant parseJSon(const QByteArray &ba, QString &err) const;
 	bool dataAvailable() const;
 
-	QImage downloadImage(const QUrl &u) const;
+	QByteArray downloadFile(const QUrl &u) const;
 
 	template<class T>
-	T entry(int idx, const QString &id, bool author = false) const {
+	T entry(int idx, const QString &id, const QString &subId = QString::null) const {
 
 		if(dataAvailable()) {
 
 			if(entries() > idx) {
-				return !author ?  m_vdata[idx].toMap()[id].value<T>() :
-								  m_vdata[idx].toMap()["author"].toMap()[id].value<T>();
+				return subId.isEmpty() ?  m_vdata[idx].toMap()[id].value<T>() :
+								  m_vdata[idx].toMap()[subId].toMap()[id].value<T>();
 			} else {
 				emit error(QString(m_outOfBoundsError).arg(entries()).arg(idx));
 			}

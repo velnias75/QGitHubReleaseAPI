@@ -100,6 +100,8 @@ void QGitHubReleaseAPIPrivate::init() const {
 					 this, SLOT(downloaded(FileDownloader,QVariant*)));
 	QObject::connect(m_apiDownloader, SIGNAL(progress(qint64,qint64,QVariant*)),
 					 this, SLOT(downloadProgress(qint64,qint64,QVariant*)));
+
+	m_apiDownloader->start();
 }
 
 QImage QGitHubReleaseAPIPrivate::avatar(int idx) const {
@@ -107,45 +109,48 @@ QImage QGitHubReleaseAPIPrivate::avatar(int idx) const {
 	if(m_avatars.contains(idx)) {
 		return m_avatars.value(idx);
 	} else {
-		QImage img = downloadImage(avatarUrl(idx));
+		QImage img = QImage::fromData(downloadFile(avatarUrl(idx)));
 		if(!img.isNull()) return *m_avatars.insert(idx, img);
 	}
 
 	return QImage();
 }
 
-QImage QGitHubReleaseAPIPrivate::downloadImage(const QUrl &u) const {
+QByteArray QGitHubReleaseAPIPrivate::downloadFile(const QUrl &u) const {
 
 	QEventLoop wait;
-	QVariant img(QVariant::ByteArray);
+	QVariant file(QVariant::ByteArray);
 
 	FileDownloader dl(u, m_userAgent);
-	dl.setCacheLoadControlAttribute(QNetworkRequest::PreferNetwork);
-	dl.setUserData(img);
+
+	dl.setCacheLoadControlAttribute(QNetworkRequest::PreferCache);
+	dl.setUserData(file);
 
 	QObject::connect(this, SIGNAL(avatarStopWait()), &wait, SLOT(quit()));
 	QObject::connect(&dl, SIGNAL(downloaded(FileDownloader,QVariant*)),
-					 this, SLOT(imageDownloaded(FileDownloader,QVariant*)));
+					 this, SLOT(fileDownloaded(FileDownloader,QVariant*)));
 	QObject::connect(&dl, SIGNAL(error(QString,QVariant*)),
-					 this, SLOT(imageError(QString,QVariant*)));
+					 this, SLOT(fileDownloadError(QString,QVariant*)));
 	QObject::connect(&dl, SIGNAL(progress(qint64,qint64,QVariant*)),
-					 this, SLOT(imageProgress(qint64,qint64,QVariant*)));
+					 this, SLOT(fileDownloadProgress(qint64,qint64,QVariant*)));
+	dl.start();
+
 	wait.exec();
 
-	return QImage::fromData(img.toByteArray());
+	return file.toByteArray();
 }
 
-void QGitHubReleaseAPIPrivate::imageDownloaded(const FileDownloader &fd, QVariant *ud) {
+void QGitHubReleaseAPIPrivate::fileDownloaded(const FileDownloader &fd, QVariant *ud) {
 	if(ud) ud->setValue(fd.downloadedData());
 	emit avatarStopWait();
 }
 
-void QGitHubReleaseAPIPrivate::imageError(const QString &err, QVariant *) {
+void QGitHubReleaseAPIPrivate::fileDownloadError(const QString &err, QVariant *) {
 	emit error(err);
 	emit avatarStopWait();
 }
 
-void QGitHubReleaseAPIPrivate::imageProgress(qint64 br, qint64 bt, QVariant *) {
+void QGitHubReleaseAPIPrivate::fileDownloadProgress(qint64 br, qint64 bt, QVariant *) {
 	emit progress(br, bt);
 }
 
@@ -182,7 +187,7 @@ QString QGitHubReleaseAPIPrivate::body(int idx) const {
 
 				while((idx = b.indexOf(imgRex, idx + 1)) != -1) {
 
-					QImage img = downloadImage(QUrl(imgRex.cap(1)));
+					QImage img = QImage::fromData(downloadFile(QUrl(imgRex.cap(1))));
 
 					if(!img.isNull()) {
 
@@ -231,6 +236,45 @@ void QGitHubReleaseAPIPrivate::downloadProgress(qint64 br, qint64 bt, QVariant *
 	emit progress(br, bt);
 }
 
+QVariant QGitHubReleaseAPIPrivate::parseJSon(const QByteArray &ba, QString &err) const {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0) || defined(QJSON_FOUND)
+#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
+	QJson::Parser parser;
+	bool ok = false;
+#else
+	QJsonParseError ok;
+#endif
+
+	err = QString::null;
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+
+	QVariant v(QJsonDocument::fromJson(ba, &ok).toVariant());
+
+	if(ok.error == QJsonParseError::NoError) {
+		return v;
+	} else {
+		err = ok.errorString();
+	}
+
+#else
+
+	QVariant v(parser.parse(m_jsonData, &ok));
+
+	if(ok) {
+		return v;
+	} else {
+		err = parser.errorString();
+	}
+
+#endif
+#else
+	err = tr("No JSon parser found");
+#endif
+
+	return QVariant();
+}
+
 void QGitHubReleaseAPIPrivate::downloaded(const FileDownloader &fd, QVariant *) {
 
 	m_jsonData = fd.downloadedData();
@@ -248,46 +292,23 @@ void QGitHubReleaseAPIPrivate::downloaded(const FileDownloader &fd, QVariant *) 
 		}
 	}
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0) || defined(QJSON_FOUND)
-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-	QJson::Parser parser;
-	bool ok = false;
-#else
-	QJsonParseError ok;
-#endif
+	QVariant va(parseJSon(m_jsonData, m_errorString));
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
-	if(m_singleEntryRequested) {
-		m_vdata.append(QJsonDocument::fromJson(m_jsonData, &ok).toVariant());
-	} else {
-		m_vdata = QJsonDocument::fromJson(m_jsonData, &ok).toVariant().toList();
-	}
-#else
-	if(m_singleEntryRequested) {
-		m_vdata.append(parser.parse(m_jsonData, &ok));
-	} else {
-		m_vdata = parser.parse(m_jsonData, &ok).toList();
-	}
-#endif
+	if(m_errorString.isNull()) {
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+		if(m_singleEntryRequested) {
+			m_vdata.append(va);
+		} else if((m_vdata = va.toList()).isEmpty()) {
+			m_errorString = va.toMap()["message"].toString();
+			emit error(m_errorString);
+			return;
+		}
 
-	m_errorString = ok.errorString();
-
-	if(ok.error != QJsonParseError::NoError) {
-		qWarning("QJson: %s", m_errorString.toStdString().c_str());
-#else
-
-	m_errorString = parser.errorString();
-
-	if(!ok) {
-		qWarning("QJson: %s", m_errorString.toStdString().c_str());
-#endif
-		emit error(m_errorString);
-	} else if(!m_jsonData.isEmpty()) {
 		emit available();
+
+	} else {
+		emit error(m_errorString);
 	}
-#endif
 }
 
 void QGitHubReleaseAPIPrivate::fdError(const QString &err, QVariant *) {
@@ -304,4 +325,12 @@ QUrl QGitHubReleaseAPIPrivate::apiUrl() const {
 
 int QGitHubReleaseAPIPrivate::entries() const {
 	return dataAvailable() ? m_vdata.count() : 0;
+}
+
+QByteArray QGitHubReleaseAPIPrivate::tarBall(int idx) const {
+	return downloadFile(tarBallUrl(idx));
+}
+
+QByteArray QGitHubReleaseAPIPrivate::zipBall(int idx) const {
+	return downloadFile(zipBallUrl(idx));
 }

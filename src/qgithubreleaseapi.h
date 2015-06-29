@@ -62,6 +62,11 @@ public:
 	QDateTime publishedAt(int idx = 0) const;
 	QUrl avatarUrl(int idx = 0) const;
 	QImage avatar(int idx = 0) const;
+	QString login(int idx = 0) const;
+	QUrl tarBallUrl(int idx = 0) const;
+	QUrl zipBallUrl(int idx = 0) const;
+	QByteArray tarBall(int idx = 0) const;
+	QByteArray zipBall(int idx = 0) const;
 
 	QVariantList toVariantList() const;
 	QByteArray asJsonData() const;

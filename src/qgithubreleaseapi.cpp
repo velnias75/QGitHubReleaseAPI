@@ -167,3 +167,28 @@ QDateTime QGitHubReleaseAPI::rateLimitReset() const {
 	Q_D(const QGitHubReleaseAPI);
 	return d->rateLimitReset();
 }
+
+QString QGitHubReleaseAPI::login(int idx) const {
+	Q_D(const QGitHubReleaseAPI);
+	return d->login(idx);
+}
+
+QUrl QGitHubReleaseAPI::tarBallUrl(int idx) const {
+	Q_D(const QGitHubReleaseAPI);
+	return d->tarBallUrl(idx);
+}
+
+QUrl QGitHubReleaseAPI::zipBallUrl(int idx) const {
+	Q_D(const QGitHubReleaseAPI);
+	return d->zipBallUrl(idx);
+}
+
+QByteArray QGitHubReleaseAPI::tarBall(int idx) const {
+	Q_D(const QGitHubReleaseAPI);
+	return d->tarBall(idx);
+}
+
+QByteArray QGitHubReleaseAPI::zipBall(int idx) const {
+	Q_D(const QGitHubReleaseAPI);
+	return d->zipBall(idx);
+}
