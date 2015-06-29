@@ -38,8 +38,8 @@ public:
 		m_cacheLoadControlAttribute = att;
 	}
 
-	inline void setUserData(const QVariant &ud) {
-		m_userData = ud;
+	inline void setUserData(QVariant &ud) {
+		m_userData = &ud;
 	}
 
 	inline QUrl url() const {
@@ -53,9 +53,9 @@ public:
 	}
 
 signals:
-	void downloaded(const FileDownloader &, const QVariant &);
-	void error(const QString &, const QVariant &);
-	void progress(qint64, qint64, const QVariant &);
+	void downloaded(const FileDownloader &, QVariant *);
+	void error(const QString &, QVariant *);
+	void progress(qint64, qint64, QVariant *);
 
 private slots:
 	void fileDownloaded(QNetworkReply *pReply);
@@ -67,7 +67,7 @@ private:
 	QUrl m_url;
 	QList<QNetworkReply::RawHeaderPair> m_rawHeaderPairs;
 	QNetworkReply *m_reply;
-	QVariant m_userData;
+	QVariant *m_userData;
 	QNetworkRequest::CacheLoadControl m_cacheLoadControlAttribute;
 };
 

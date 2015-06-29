@@ -110,12 +110,12 @@ public:
 	}
 
 private slots:
-	void downloaded(const FileDownloader &, const QVariant &);
-	void avatarDownloaded(const FileDownloader &, const QVariant &);
-	void fdError(const QString &, const QVariant &);
-	void avatarError(const QString &, const QVariant &);
-	void downloadProgress(qint64, qint64, const QVariant &);
-	void avatarProgress(qint64, qint64, const QVariant &);
+	void downloaded(const FileDownloader &, QVariant *);
+	void imageDownloaded(const FileDownloader &, QVariant *);
+	void fdError(const QString &, QVariant *);
+	void imageError(const QString &, QVariant *);
+	void downloadProgress(qint64, qint64, QVariant *);
+	void imageProgress(qint64, qint64, QVariant *);
 
 signals:
 	void available();
@@ -126,6 +126,8 @@ signals:
 private:
 	void init() const;
 	bool dataAvailable() const;
+
+	QImage downloadImage(const QUrl &u) const;
 
 	template<class T>
 	T entry(int idx, const QString &id, bool author = false) const {
@@ -159,7 +161,7 @@ private:
 	uint m_rateLimitRemaining;
 	bool m_singleEntryRequested;
 	QDateTime m_rateLimitReset;
-	QMap<int, QImage *> m_avatars;
+	mutable QMap<int, QImage> m_avatars;
 };
 
 #endif // QGITHUBRELEASEAPI_P_H

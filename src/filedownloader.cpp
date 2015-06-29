@@ -23,7 +23,7 @@
 
 FileDownloader::FileDownloader(const QUrl &url, const char *userAgent, QObject *p) :
 	QObject(p), m_WebCtrl(), m_DownloadedData(), m_url(url), m_rawHeaderPairs(), m_reply(0L),
-	m_userData(), m_cacheLoadControlAttribute(QNetworkRequest::AlwaysNetwork) {
+	m_userData(0L), m_cacheLoadControlAttribute(QNetworkRequest::AlwaysNetwork) {
 
 	QObject::connect(&m_WebCtrl, SIGNAL(finished(QNetworkReply*)),
 					 SLOT(fileDownloaded(QNetworkReply*)));

@@ -18,11 +18,12 @@
  */
 
 #include <QImage>
+#include <QRegExp>
 #include <QEventLoop>
 
-#include "qgithubreleaseapi_p.h"
-
-#include "filedownloader.h"
+#if QT_VERSION >= QT_VERSION_CHECK(4, 5, 0)
+#include <QBuffer>
+#endif
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0) || defined(QJSON_FOUND)
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
@@ -36,6 +37,9 @@ extern "C" {
 }
 #endif
 #endif
+
+#include "qgithubreleaseapi_p.h"
+#include "filedownloader.h"
 
 const char *QGitHubReleaseAPIPrivate::m_userAgent = "QGitHubReleaseAPI";
 const char *QGitHubReleaseAPIPrivate::m_outOfBoundsError =
@@ -87,56 +91,61 @@ QGitHubReleaseAPIPrivate::QGitHubReleaseAPIPrivate(const QString &user, const QS
 
 QGitHubReleaseAPIPrivate::~QGitHubReleaseAPIPrivate() {
 	delete m_apiDownloader;
-	foreach(QImage *img, m_avatars) delete img;
 }
 
 void QGitHubReleaseAPIPrivate::init() const {
-	QObject::connect(m_apiDownloader, SIGNAL(error(QString,QVariant)),
-					 this, SLOT(fdError(QString,QVariant)));
-	QObject::connect(m_apiDownloader, SIGNAL(downloaded(FileDownloader,QVariant)),
-					 this, SLOT(downloaded(FileDownloader,QVariant)));
-	QObject::connect(m_apiDownloader, SIGNAL(progress(qint64,qint64,QVariant)),
-					 this, SLOT(downloadProgress(qint64,qint64,QVariant)));
+	QObject::connect(m_apiDownloader, SIGNAL(error(QString,QVariant*)),
+					 this, SLOT(fdError(QString,QVariant*)));
+	QObject::connect(m_apiDownloader, SIGNAL(downloaded(FileDownloader,QVariant*)),
+					 this, SLOT(downloaded(FileDownloader,QVariant*)));
+	QObject::connect(m_apiDownloader, SIGNAL(progress(qint64,qint64,QVariant*)),
+					 this, SLOT(downloadProgress(qint64,qint64,QVariant*)));
 }
 
 QImage QGitHubReleaseAPIPrivate::avatar(int idx) const {
 
 	if(m_avatars.contains(idx)) {
-		return *m_avatars.value(idx);
+		return m_avatars.value(idx);
 	} else {
-
-		QEventLoop wait;
-
-		FileDownloader dl(avatarUrl(idx), m_userAgent);
-		dl.setCacheLoadControlAttribute(QNetworkRequest::PreferNetwork);
-		dl.setUserData(idx);
-
-		QObject::connect(this, SIGNAL(avatarStopWait()), &wait, SLOT(quit()));
-		QObject::connect(&dl, SIGNAL(downloaded(FileDownloader,QVariant)),
-						 this, SLOT(avatarDownloaded(FileDownloader,QVariant)));
-		QObject::connect(&dl, SIGNAL(error(QString,QVariant)),
-						 this, SLOT(avatarError(QString,QVariant)));
-		QObject::connect(&dl, SIGNAL(progress(qint64,qint64,QVariant)),
-						 this, SLOT(avatarProgress(qint64,qint64,QVariant)));
-		wait.exec();
-
-		if(m_avatars.contains(idx)) return *m_avatars.value(idx);
+		QImage img = downloadImage(avatarUrl(idx));
+		if(!img.isNull()) return *m_avatars.insert(idx, img);
 	}
 
 	return QImage();
 }
 
-void QGitHubReleaseAPIPrivate::avatarDownloaded(const FileDownloader &fd, const QVariant &ud) {
-	m_avatars.insert(ud.toInt(), new QImage(QImage::fromData(fd.downloadedData())));
+QImage QGitHubReleaseAPIPrivate::downloadImage(const QUrl &u) const {
+
+	QEventLoop wait;
+	QVariant img(QVariant::ByteArray);
+
+	FileDownloader dl(u, m_userAgent);
+	dl.setCacheLoadControlAttribute(QNetworkRequest::PreferNetwork);
+	dl.setUserData(img);
+
+	QObject::connect(this, SIGNAL(avatarStopWait()), &wait, SLOT(quit()));
+	QObject::connect(&dl, SIGNAL(downloaded(FileDownloader,QVariant*)),
+					 this, SLOT(imageDownloaded(FileDownloader,QVariant*)));
+	QObject::connect(&dl, SIGNAL(error(QString,QVariant*)),
+					 this, SLOT(imageError(QString,QVariant*)));
+	QObject::connect(&dl, SIGNAL(progress(qint64,qint64,QVariant*)),
+					 this, SLOT(imageProgress(qint64,qint64,QVariant*)));
+	wait.exec();
+
+	return QImage::fromData(img.toByteArray());
+}
+
+void QGitHubReleaseAPIPrivate::imageDownloaded(const FileDownloader &fd, QVariant *ud) {
+	if(ud) ud->setValue(fd.downloadedData());
 	emit avatarStopWait();
 }
 
-void QGitHubReleaseAPIPrivate::avatarError(const QString &err, const QVariant &) {
+void QGitHubReleaseAPIPrivate::imageError(const QString &err, QVariant *) {
 	emit error(err);
 	emit avatarStopWait();
 }
 
-void QGitHubReleaseAPIPrivate::avatarProgress(qint64 br, qint64 bt, const QVariant &) {
+void QGitHubReleaseAPIPrivate::imageProgress(qint64 br, qint64 bt, QVariant *) {
 	emit progress(br, bt);
 }
 
@@ -149,7 +158,12 @@ QString QGitHubReleaseAPIPrivate::body(int idx) const {
 
 			const QString bMD(m_vdata[idx].toMap()["body"].toString());
 
+#if QT_VERSION >= QT_VERSION_CHECK(4, 5, 0)
+			const mkd_flag_t f = MKD_TOC|MKD_AUTOLINK|MKD_NOEXT|MKD_NOHEADER;
+#else
 			const mkd_flag_t f = MKD_TOC|MKD_AUTOLINK|MKD_NOEXT|MKD_NOHEADER|MKD_NOIMAGE;
+#endif
+
 			MMIOT *doc = 0L;
 			char *html = 0L;
 			int dlen   = EOF;
@@ -157,11 +171,43 @@ QString QGitHubReleaseAPIPrivate::body(int idx) const {
 			if((doc = mkd_string(bMD.toStdString().c_str(), bMD.length(), f)) &&
 					mkd_compile(doc, f) != EOF && (dlen = mkd_document(doc, &html)) != EOF) {
 
-				const QString b(QString::fromUtf8((QByteArray(html,
-															  dlen).append('\0')).constData()));
+				QString b(QString::fromUtf8((QByteArray(html,
+														dlen).append('\0')).constData()));
 				mkd_cleanup(doc);
 
-				return b;
+#if QT_VERSION >= QT_VERSION_CHECK(4, 5, 0)
+
+				QRegExp imgRex("<[^<]*img[^>]*src\\s*=\\s*\"([^\"]*)\"[^>]*>");
+				int idx = -1;
+
+				while((idx = b.indexOf(imgRex, idx + 1)) != -1) {
+
+					QImage img = downloadImage(QUrl(imgRex.cap(1)));
+
+					if(!img.isNull()) {
+
+						QByteArray ba;
+						QBuffer buf(&ba);
+						buf.open(QIODevice::WriteOnly);
+						img.save(&buf, "PNG");
+						ba.squeeze();
+
+						b.replace(imgRex.pos(1), imgRex.cap(1).length(),
+								  QString("data:image/png;base64,%1").
+								  arg(ba.toBase64().constData()));
+					}
+				}
+#endif
+				return b.append("<hr /><p>Release information provided by " \
+								"<em>QGitHubReleaseAPI "
+								PROJECTVERSION
+								"</em> &copy; 2015 " \
+								"Heiko Sch&auml;fer &lt;<a href=\"mailto:heiko@rangun.de?" \
+								"subject=QGitHubReleaseAPI%20"
+								PROJECTVERSION
+								"\">heiko@rangun.de</a>&gt;<br />").
+						append(QString("Markdown rendered with libmarkdown: %1</p>").
+							   arg(markdown_version));
 
 			} else {
 				emit error(tr("libmarkdown: parsing failed"));
@@ -181,11 +227,11 @@ QString QGitHubReleaseAPIPrivate::body(int idx) const {
 	return QString::null;
 }
 
-void QGitHubReleaseAPIPrivate::downloadProgress(qint64 br, qint64 bt, const QVariant &) {
+void QGitHubReleaseAPIPrivate::downloadProgress(qint64 br, qint64 bt, QVariant *) {
 	emit progress(br, bt);
 }
 
-void QGitHubReleaseAPIPrivate::downloaded(const FileDownloader &fd, const QVariant &) {
+void QGitHubReleaseAPIPrivate::downloaded(const FileDownloader &fd, QVariant *) {
 
 	m_jsonData = fd.downloadedData();
 
@@ -244,7 +290,7 @@ void QGitHubReleaseAPIPrivate::downloaded(const FileDownloader &fd, const QVaria
 #endif
 }
 
-void QGitHubReleaseAPIPrivate::fdError(const QString &err, const QVariant &) {
+void QGitHubReleaseAPIPrivate::fdError(const QString &err, QVariant *) {
 	emit error(QString("network error: %1").arg(err));
 }
 
