@@ -211,7 +211,7 @@ QString QGitHubReleaseAPIPrivate::body(int idx) const {
 								"subject=QGitHubReleaseAPI%20"
 								PROJECTVERSION
 								"\">heiko@rangun.de</a>&gt;<br />").
-						append(QString("Markdown rendered with libmarkdown: %1</p>").
+						append(QString("Markdown rendered with <em>libmarkdown %1</em></p>").
 							   arg(markdown_version));
 
 			} else {
