@@ -10,12 +10,13 @@ include(GenerateExportHeader)
 include(FindPkgConfig)
 include(CheckIncludeFile)
 
-find_package(Qt4 REQUIRED)
+find_package(Qt4)
 pkg_search_module(QJSON QJson)
 
 CHECK_INCLUDE_FILE(mkdio.h HAVE_MKDIO_H)
 find_library(MARKDOWN_LIBRARIES markdown)
 
+set(QT_USE_QTGUI TRUE)
 set(QT_USE_QTCORE TRUE)
 set(QT_USE_QTNETWORK TRUE)
 
@@ -52,12 +53,13 @@ generate_export_header(qgithubreleaseapi EXPORT_FILE_NAME export.h)
 set_property(TARGET qgithubreleaseapi PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_target_properties(qgithubreleaseapi PROPERTIES VERSION 0 SOVERSION 0.0.0)
 
-target_link_libraries(qgithubreleaseapi QtCore)
-target_link_libraries(qgithubreleaseapi QtNetwork)
+target_link_libraries(qgithubreleaseapi ${QT_LIBRARIES})
+#target_link_libraries(qgithubreleaseapi ${QT_QTCORE_LIBRARY})
+#target_link_libraries(qgithubreleaseapi ${QT_QTNETWORK_LIBRARY})
 
 if(${QJSON_FOUND})
 set(QJSON_REQUIRED "Requires: QJson")
-target_link_libraries(qgithubreleaseapi ${QJSON_LIBRARIES})
+target_link_libraries(qgithubreleaseapi qjson)
 endif(${QJSON_FOUND})
 
 if(${HAVE_MKDIO_H})

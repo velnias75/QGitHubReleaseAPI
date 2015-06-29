@@ -79,7 +79,9 @@ void FileDownloader::fileDownloaded(QNetworkReply *pReply) {
 								this, SLOT(downloadProgress(qint64,qint64)));
 
 			m_reply->deleteLater();
-			m_reply = m_WebCtrl.get(QNetworkRequest(m_url));
+
+			m_request.setUrl(m_url);
+			m_reply = m_WebCtrl.get(m_request);
 
 			QObject::connect(m_reply, SIGNAL(downloadProgress(qint64,qint64)),
 							 this, SLOT(downloadProgress(qint64,qint64)));

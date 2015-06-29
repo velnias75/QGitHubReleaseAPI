@@ -1,3 +1,4 @@
+src/moc_*
 build/
 qgithubreleaseapi.pc
 CMakeLists.txt.user
