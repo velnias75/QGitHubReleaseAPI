@@ -50,7 +50,7 @@ const char *QGitHubReleaseAPIPrivate::m_noDataAvailableError =
 QGitHubReleaseAPIPrivate::QGitHubReleaseAPIPrivate(const QUrl &apiUrl, bool multi, QObject *p) :
 	QObject(p), m_apiDownloader(new FileDownloader(apiUrl, m_userAgent)), m_jsonData(),
 	m_errorString(), m_rateLimit(0), m_rateLimitRemaining(0), m_singleEntryRequested(!multi),
-	m_avatars() {
+	m_avatars(), m_eTag(QString::null) {
 	init();
 }
 
@@ -61,7 +61,7 @@ QGitHubReleaseAPIPrivate::QGitHubReleaseAPIPrivate(const QString &user, const QS
 											.arg(QString(QUrl::toPercentEncoding(repo)))
 											.arg(latest ? "/latest" : "")), m_userAgent)),
 	m_jsonData(), m_errorString(), m_rateLimit(0), m_rateLimitRemaining(0),
-	m_singleEntryRequested(latest), m_avatars() {
+	m_singleEntryRequested(latest), m_avatars(), m_eTag(QString::null) {
 	init();
 }
 
@@ -73,7 +73,7 @@ QGitHubReleaseAPIPrivate::QGitHubReleaseAPIPrivate(const QString &user, const QS
 											.arg(QString(QUrl::toPercentEncoding(repo)))
 											.arg(QString(QUrl::toPercentEncoding(tag)))),
 									   m_userAgent)), m_jsonData(), m_errorString(), m_rateLimit(0),
-	m_rateLimitRemaining(0), m_singleEntryRequested(true), m_avatars() {
+	m_rateLimitRemaining(0), m_singleEntryRequested(true), m_avatars(), m_eTag(QString::null) {
 	init();
 }
 
@@ -85,7 +85,7 @@ QGitHubReleaseAPIPrivate::QGitHubReleaseAPIPrivate(const QString &user, const QS
 											arg(QString(QUrl::toPercentEncoding(repo))).
 											arg(limit)), m_userAgent)), m_jsonData(),
 	m_errorString(), m_rateLimit(0), m_rateLimitRemaining(0), m_singleEntryRequested(false),
-	m_avatars() {
+	m_avatars(), m_eTag(QString::null) {
 	init();
 }
 
@@ -121,7 +121,7 @@ QByteArray QGitHubReleaseAPIPrivate::downloadFile(const QUrl &u) const {
 	QEventLoop wait;
 	QVariant file(QVariant::ByteArray);
 
-	FileDownloader dl(u, m_userAgent);
+	FileDownloader dl(u, m_userAgent, m_eTag);
 
 	dl.setCacheLoadControlAttribute(QNetworkRequest::PreferCache);
 	dl.setUserData(file);
@@ -280,6 +280,8 @@ void QGitHubReleaseAPIPrivate::downloaded(const FileDownloader &fd, QVariant *) 
 	m_jsonData = fd.downloadedData();
 
 	foreach(const QNetworkReply::RawHeaderPair &pair, fd.rawHeaderPairs()) {
+
+		if(pair.first == "ETag") m_eTag = pair.second.mid(2);
 
 		if(pair.first == "X-RateLimit-Reset") {
 			m_rateLimitReset = QDateTime::fromTime_t(QString(pair.second).toUInt());

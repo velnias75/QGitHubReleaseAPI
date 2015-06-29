@@ -178,6 +178,7 @@ private:
 	bool m_singleEntryRequested;
 	QDateTime m_rateLimitReset;
 	mutable QMap<int, QImage> m_avatars;
+	QString m_eTag;
 };
 
 #endif // QGITHUBRELEASEAPI_P_H
