@@ -36,6 +36,7 @@ FileDownloader::FileDownloader(const QUrl &url, const char *userAgent,
 
 	m_request.setSslConfiguration(cnf);
 	m_request.setRawHeader("User-Agent", QByteArray(userAgent));
+	m_request.setRawHeader("Accept", QByteArray("application/vnd.github.v3.raw+json"));
 
 	if(!eTag.isEmpty()) m_request.setRawHeader("If-None-Match", eTag.toLatin1());
 
