@@ -17,14 +17,13 @@
  * along with NetMauMau Qt Client.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QNetworkReply>
-#include <QNetworkRequest>
 #include <QSslConfiguration>
 
 #include "filedownloader.h"
 
 FileDownloader::FileDownloader(const QUrl &url, const char *userAgent, QObject *p) :
-	QObject(p), m_WebCtrl(), m_DownloadedData(), m_url(url), m_rawHeaderPairs(), m_reply(0L) {
+	QObject(p), m_WebCtrl(), m_DownloadedData(), m_url(url), m_rawHeaderPairs(), m_reply(0L),
+	m_userData(), m_cacheLoadControlAttribute(QNetworkRequest::AlwaysNetwork) {
 
 	QObject::connect(&m_WebCtrl, SIGNAL(finished(QNetworkReply*)),
 					 SLOT(fileDownloaded(QNetworkReply*)));
@@ -38,7 +37,7 @@ FileDownloader::FileDownloader(const QUrl &url, const char *userAgent, QObject *
 	request.setSslConfiguration(cnf);
 	request.setRawHeader("User-Agent", QByteArray(userAgent));
 	request.setAttribute(QNetworkRequest::CacheLoadControlAttribute,
-						 QNetworkRequest::AlwaysNetwork);
+						 m_cacheLoadControlAttribute);
 
 	m_reply = m_WebCtrl.get(request);
 
@@ -49,18 +48,18 @@ FileDownloader::FileDownloader(const QUrl &url, const char *userAgent, QObject *
 FileDownloader::~FileDownloader() {}
 
 void FileDownloader::downloadProgress(qint64 bytesReceived, qint64 bytesTotal) {
-	emit progress(bytesReceived, bytesTotal);
+	emit progress(bytesReceived, bytesTotal, m_userData);
 }
 
 void FileDownloader::fileDownloaded(QNetworkReply *pReply) {
 
 	if(pReply->error() != QNetworkReply::NoError) {
-		emit error(pReply->errorString());
+		emit error(pReply->errorString(), m_userData);
 	} else {
 		m_rawHeaderPairs = pReply->rawHeaderPairs();
 		m_DownloadedData = pReply->readAll();
 		pReply->deleteLater();
-		emit downloaded();
+		emit downloaded(*this, m_userData);
 	}
 }
 

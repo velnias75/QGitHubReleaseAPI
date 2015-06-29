@@ -40,20 +40,28 @@ public:
 					  QObject *parent = 0);
 	QGitHubReleaseAPI(const QString &user, const QString &repo, const char *tag,
 					  QObject *parent = 0);
-	QGitHubReleaseAPI(const QString &user, const QString &repo, int perPage, QObject *parent = 0);
+	QGitHubReleaseAPI(const QString &user, const QString &repo, int perPage,
+					  QObject *parent = 0);
 
 	virtual ~QGitHubReleaseAPI();
 
 	static void setUserAgent(const char *ua);
 
-	QUrl url() const;
+	QUrl apiUrl() const;
 
 	int entries() const;
 
+	ulong id(int idx = 0) const;
+	QUrl url(int idx = 0) const;
+	QUrl assetsUrl(int idx = 0) const;
+	QUrl uploadUrl(int idx = 0) const;
+	QUrl htmlUrl(int idx = 0) const;
 	QString name(int idx = 0) const;
 	QString body(int idx = 0) const;
 	QString tagName(int idx = 0) const;
 	QDateTime publishedAt(int idx = 0) const;
+	QUrl avatarUrl(int idx = 0) const;
+	QImage avatar(int idx = 0) const;
 
 	QVariantList toVariantList() const;
 	QByteArray asJsonData() const;
@@ -63,7 +71,7 @@ public:
 	QDateTime rateLimitReset() const;
 
 signals:
-	void available();
+	void available(const QGitHubReleaseAPI &);
 	void error(const QString &);
 	void progress(qint64 bytesReceived, qint64 bytesTotal);
 

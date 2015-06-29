@@ -22,6 +22,7 @@
 
 #include <QUrl>
 #include <QNetworkReply>
+#include <QNetworkRequest>
 #include <QNetworkAccessManager>
 
 #include "export.h"
@@ -30,8 +31,16 @@ class QGITHUBRELEASEAPI_NO_EXPORT FileDownloader : public QObject {
 	Q_OBJECT
 	Q_DISABLE_COPY(FileDownloader)
 public:
-	explicit FileDownloader(const QUrl &url, const char *userAgent, QObject *parent = 0L);
+	FileDownloader(const QUrl &url, const char *userAgent, QObject *parent = 0L);
 	virtual ~FileDownloader();
+
+	inline void setCacheLoadControlAttribute(QNetworkRequest::CacheLoadControl att) {
+		m_cacheLoadControlAttribute = att;
+	}
+
+	inline void setUserData(const QVariant &ud) {
+		m_userData = ud;
+	}
 
 	inline QUrl url() const {
 		return m_url;
@@ -44,9 +53,9 @@ public:
 	}
 
 signals:
-	void downloaded();
-	void error(const QString &);
-	void progress(qint64, qint64);
+	void downloaded(const FileDownloader &, const QVariant &);
+	void error(const QString &, const QVariant &);
+	void progress(qint64, qint64, const QVariant &);
 
 private slots:
 	void fileDownloaded(QNetworkReply *pReply);
@@ -58,6 +67,8 @@ private:
 	QUrl m_url;
 	QList<QNetworkReply::RawHeaderPair> m_rawHeaderPairs;
 	QNetworkReply *m_reply;
+	QVariant m_userData;
+	QNetworkRequest::CacheLoadControl m_cacheLoadControlAttribute;
 };
 
 #endif // FILEDOWNLOADER_H

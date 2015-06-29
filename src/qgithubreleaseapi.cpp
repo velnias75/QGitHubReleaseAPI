@@ -17,10 +17,10 @@
  * along with NetMauMau Qt Client.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QImage>
 #include <QDateTime>
 
 #include "qgithubreleaseapi.h"
-
 #include "qgithubreleaseapi_p.h"
 
 QGitHubReleaseAPI::QGitHubReleaseAPI(const QUrl &apiUrl, bool multi, QObject *p) : QObject(p),
@@ -67,7 +67,7 @@ void QGitHubReleaseAPI::setUserAgent(const char *ua) {
 }
 
 void QGitHubReleaseAPI::apiAvailable() {
-	emit available();
+	emit available(*this);
 }
 
 void QGitHubReleaseAPI::apiError(const QString &err) {
@@ -78,14 +78,49 @@ void QGitHubReleaseAPI::apiDownloadProgress(qint64 br, qint64 bt) {
 	emit progress(br, bt);
 }
 
-QUrl QGitHubReleaseAPI::url() const {
+QUrl QGitHubReleaseAPI::apiUrl() const {
 	Q_D(const QGitHubReleaseAPI);
-	return d->url();
+	return d->apiUrl();
 }
 
 int  QGitHubReleaseAPI::entries() const {
 	Q_D(const QGitHubReleaseAPI);
 	return d->entries();
+}
+
+ulong QGitHubReleaseAPI::id(int idx) const {
+	Q_D(const QGitHubReleaseAPI);
+	return d->id(idx);
+}
+
+QUrl QGitHubReleaseAPI::avatarUrl(int idx) const {
+	Q_D(const QGitHubReleaseAPI);
+	return d->avatarUrl(idx);
+}
+
+QImage QGitHubReleaseAPI::avatar(int idx) const {
+	Q_D(const QGitHubReleaseAPI);
+	return d->avatar(idx);
+}
+
+QUrl QGitHubReleaseAPI::url(int idx) const {
+	Q_D(const QGitHubReleaseAPI);
+	return d->url(idx);
+}
+
+QUrl QGitHubReleaseAPI::assetsUrl(int idx) const {
+	Q_D(const QGitHubReleaseAPI);
+	return d->assetsUrl(idx);
+}
+
+QUrl QGitHubReleaseAPI::uploadUrl(int idx) const {
+	Q_D(const QGitHubReleaseAPI);
+	return d->uploadUrl(idx);
+}
+
+QUrl QGitHubReleaseAPI::htmlUrl(int idx) const {
+	Q_D(const QGitHubReleaseAPI);
+	return d->htmlUrl(idx);
 }
 
 QString QGitHubReleaseAPI::name(int idx) const {

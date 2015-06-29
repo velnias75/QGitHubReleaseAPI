@@ -46,14 +46,48 @@ public:
 		m_userAgent = ua;
 	}
 
-	QUrl url() const;
+	QUrl apiUrl() const;
 
 	int entries() const;
 
-	QString name(int idx) const;
+	inline QUrl url(int idx) const {
+		return entry<QUrl>(idx, "url");
+	}
+
+	inline QUrl assetsUrl(int idx) const {
+		return entry<QUrl>(idx, "assets_url");
+	}
+
+	inline QUrl uploadUrl(int idx) const {
+		return entry<QUrl>(idx, "upload_url");
+	}
+
+	inline QUrl htmlUrl(int idx) const {
+		return entry<QUrl>(idx, "html_url");
+	}
+
+	inline ulong id(int idx) const {
+		return entry<ulong>(idx, "id");
+	}
+
+	inline QString name(int idx) const {
+		return entry<QString>(idx, "name");
+	}
+
 	QString body(int idx) const;
-	QString tagName(int idx) const;
-	QDateTime publishedAt(int idx) const;
+	QImage avatar(int idx) const;
+
+	inline QUrl avatarUrl(int idx) const {
+		return entry<QUrl>(idx, "avatar_url", true);
+	}
+
+	inline QString tagName(int idx) const {
+		return entry<QString>(idx, "tag_name");
+	}
+
+	inline QDateTime publishedAt(int idx) const {
+		return entry<QDateTime>(idx, "published_at");
+	}
 
 	inline QVariantList toVariantList() const {
 		return m_vdata;
@@ -76,23 +110,48 @@ public:
 	}
 
 private slots:
-	void downloaded();
-	void fdError(const QString &);
-	void downloadProgress(qint64, qint64);
+	void downloaded(const FileDownloader &, const QVariant &);
+	void avatarDownloaded(const FileDownloader &, const QVariant &);
+	void fdError(const QString &, const QVariant &);
+	void avatarError(const QString &, const QVariant &);
+	void downloadProgress(qint64, qint64, const QVariant &);
+	void avatarProgress(qint64, qint64, const QVariant &);
 
 signals:
 	void available();
 	void error(const QString &) const;
 	void progress(qint64, qint64);
+	void avatarStopWait();
 
 private:
 	void init() const;
 	bool dataAvailable() const;
 
+	template<class T>
+	T entry(int idx, const QString &id, bool author = false) const {
+
+		if(dataAvailable()) {
+
+			if(entries() > idx) {
+				return !author ?  m_vdata[idx].toMap()[id].value<T>() :
+								  m_vdata[idx].toMap()["author"].toMap()[id].value<T>();
+			} else {
+				emit error(QString(m_outOfBoundsError).arg(entries()).arg(idx));
+			}
+
+		} else {
+			emit error(m_noDataAvailableError);
+		}
+
+		return T();
+	}
+
 private:
 	static const char *m_userAgent QGITHUBRELEASEAPI_EXPORT;
+	static const char *m_outOfBoundsError;
+	static const char *m_noDataAvailableError;
 
-	const FileDownloader *m_downloader;
+	const FileDownloader *m_apiDownloader;
 	QByteArray m_jsonData;
 	QVariantList m_vdata;
 	QString m_errorString;
@@ -100,6 +159,7 @@ private:
 	uint m_rateLimitRemaining;
 	bool m_singleEntryRequested;
 	QDateTime m_rateLimitReset;
+	QMap<int, QImage *> m_avatars;
 };
 
 #endif // QGITHUBRELEASEAPI_P_H

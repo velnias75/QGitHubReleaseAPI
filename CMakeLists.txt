@@ -4,7 +4,7 @@ project(QGitHubReleaseAPI)
 
 set(PROJECT_VERSION 0.1)
 
-set(CMAKE_BUILD_TYPE RELWITHDEBINFO)
+#set(CMAKE_BUILD_TYPE RELWITHDEBINFO)
 
 include(GenerateExportHeader)
 include(FindPkgConfig)
@@ -64,10 +64,10 @@ target_link_libraries(qgithubreleaseapi ${MARKDOWN_LIBRARIES})
 endif(${HAVE_MKDIO_H})
 
 configure_file(${CMAKE_SOURCE_DIR}/qgithubreleaseapi.pc.in
-			   ${CMAKE_SOURCE_DIR}/qgithubreleaseapi.pc @ONLY)
+			   ${PROJECT_BINARY_DIR}/qgithubreleaseapi.pc @ONLY)
 
 install(TARGETS qgithubreleaseapi DESTINATION lib)
 install(TARGETS qgithubreleaseapi_static DESTINATION lib)
 install(FILES src/qgithubreleaseapi.h DESTINATION include/qgithubreleaseapi)
 install(FILES ${PROJECT_BINARY_DIR}/export.h DESTINATION include/qgithubreleaseapi)
-install(FILES ${CMAKE_SOURCE_DIR}/qgithubreleaseapi.pc DESTINATION lib/pkgconfig)
+install(FILES ${PROJECT_BINARY_DIR}/qgithubreleaseapi.pc DESTINATION lib/pkgconfig)
