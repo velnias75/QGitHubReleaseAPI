@@ -11,6 +11,5 @@ Name: @CMAKE_PROJECT_NAME@
 Description:  Qt library to receive release information from the GitHub API
 URL: https://github.com/velnias75/QGitHubReleaseAPI
 Version: ${version}
-@QJSON_REQUIRED@
 Libs: -L${libdir} -l${lib_name}
 Cflags: -I${includedir}

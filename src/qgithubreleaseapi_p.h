@@ -50,7 +50,7 @@ public:
 
 	int entries() const;
 
-	inline QUrl url(int idx) const {
+	inline QUrl releaseUrl(int idx) const {
 		return entry<QUrl>(idx, "url");
 	}
 
@@ -62,8 +62,12 @@ public:
 		return entry<QUrl>(idx, "upload_url");
 	}
 
-	inline QUrl htmlUrl(int idx) const {
+	inline QUrl releaseHtmlUrl(int idx) const {
 		return entry<QUrl>(idx, "html_url");
+	}
+
+	inline QUrl authorHtmlUrl(int idx) const {
+		return entry<QUrl>(idx, "html_url", "author");
 	}
 
 	inline QUrl tarBallUrl(int idx) const {
@@ -77,7 +81,7 @@ public:
 		return entry<QUrl>(idx, "zipball_url");
 	}
 
-	inline ulong id(int idx) const {
+	inline ulong releaseId(int idx) const {
 		return entry<ulong>(idx, "id");
 	}
 
@@ -87,6 +91,10 @@ public:
 
 	QString body(int idx) const;
 	QImage avatar(int idx) const;
+
+	inline ulong authorId(int idx) const {
+		return entry<ulong>(idx, "id", "author");
+	}
 
 	inline QString login(int idx) const {
 		return entry<QString>(idx, "login", "author");
@@ -124,6 +132,30 @@ public:
 		return m_rateLimitReset;
 	}
 
+	inline QString targetCommitish(int idx) const {
+		return entry<QString>(idx, "target_commitish");
+	}
+
+	inline bool isDraft(int idx) const {
+		return entry<bool>(idx, "draft");
+	}
+
+	inline bool isPreRelease(int idx) const {
+		return entry<bool>(idx, "prerelease");
+	}
+
+	inline QDateTime createdAt(int idx) const {
+		return entry<QDateTime>(idx, "created_at");
+	}
+
+	inline QString eTag() const {
+		return m_eTag;
+	}
+
+	inline void setETag(const QString &eTag) {
+		m_eTag = eTag;
+	}
+
 private slots:
 	void downloaded(const FileDownloader &, QVariant *);
 	void fileDownloaded(const FileDownloader &, QVariant *);
@@ -152,7 +184,7 @@ private:
 
 			if(entries() > idx) {
 				return subId.isEmpty() ?  m_vdata[idx].toMap()[id].value<T>() :
-								  m_vdata[idx].toMap()[subId].toMap()[id].value<T>();
+										  m_vdata[idx].toMap()[subId].toMap()[id].value<T>();
 			} else {
 				emit error(QString(m_outOfBoundsError).arg(entries()).arg(idx));
 			}

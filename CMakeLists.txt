@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.7)
 
 project(QGitHubReleaseAPI)
 
-set(PROJECT_VERSION 0.1)
+set(PROJECT_VERSION 0.2)
 
 #set(CMAKE_BUILD_TYPE RELWITHDEBINFO)
 
@@ -58,7 +58,6 @@ target_link_libraries(qgithubreleaseapi ${QT_LIBRARIES})
 #target_link_libraries(qgithubreleaseapi ${QT_QTNETWORK_LIBRARY})
 
 if(${QJSON_FOUND})
-set(QJSON_REQUIRED "Requires: QJson")
 target_link_libraries(qgithubreleaseapi qjson)
 endif(${QJSON_FOUND})
 

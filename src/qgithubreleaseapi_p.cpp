@@ -187,19 +187,24 @@ QString QGitHubReleaseAPIPrivate::body(int idx) const {
 
 				while((idx = b.indexOf(imgRex, idx + 1)) != -1) {
 
-					QImage img = QImage::fromData(downloadFile(QUrl(imgRex.cap(1))));
+					const QUrl url = QUrl(imgRex.cap(1));
 
-					if(!img.isNull()) {
+					if(url.isValid()) {
 
-						QByteArray ba;
-						QBuffer buf(&ba);
-						buf.open(QIODevice::WriteOnly);
-						img.save(&buf, "PNG");
-						ba.squeeze();
+						const QImage img = QImage::fromData(downloadFile(url));
 
-						b.replace(imgRex.pos(1), imgRex.cap(1).length(),
-								  QString("data:image/png;base64,%1").
-								  arg(ba.toBase64().constData()));
+						if(!img.isNull()) {
+
+							QByteArray ba;
+							QBuffer buf(&ba);
+							buf.open(QIODevice::WriteOnly);
+							img.save(&buf, "PNG");
+							ba.squeeze();
+
+							b.replace(imgRex.pos(1), imgRex.cap(1).length(),
+									  QString("data:image/png;base64,%1").
+									  arg(ba.toBase64().constData()));
+						}
 					}
 				}
 #endif

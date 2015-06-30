@@ -88,10 +88,14 @@ int  QGitHubReleaseAPI::entries() const {
 	return d->entries();
 }
 
-ulong QGitHubReleaseAPI::id(int idx) const {
+ulong QGitHubReleaseAPI::releaseId(int idx) const {
 	Q_D(const QGitHubReleaseAPI);
-	return d->id(idx);
+	return d->releaseId(idx);
 }
+ ulong QGitHubReleaseAPI::authorId(int idx) const {
+	 Q_D(const QGitHubReleaseAPI);
+	 return d->authorId(idx);
+ }
 
 QUrl QGitHubReleaseAPI::avatarUrl(int idx) const {
 	Q_D(const QGitHubReleaseAPI);
@@ -103,9 +107,9 @@ QImage QGitHubReleaseAPI::avatar(int idx) const {
 	return d->avatar(idx);
 }
 
-QUrl QGitHubReleaseAPI::url(int idx) const {
+QUrl QGitHubReleaseAPI::releaseUrl(int idx) const {
 	Q_D(const QGitHubReleaseAPI);
-	return d->url(idx);
+	return d->releaseUrl(idx);
 }
 
 QUrl QGitHubReleaseAPI::assetsUrl(int idx) const {
@@ -118,9 +122,9 @@ QUrl QGitHubReleaseAPI::uploadUrl(int idx) const {
 	return d->uploadUrl(idx);
 }
 
-QUrl QGitHubReleaseAPI::htmlUrl(int idx) const {
+QUrl QGitHubReleaseAPI::releaseHtmlUrl(int idx) const {
 	Q_D(const QGitHubReleaseAPI);
-	return d->htmlUrl(idx);
+	return d->releaseHtmlUrl(idx);
 }
 
 QString QGitHubReleaseAPI::name(int idx) const {
@@ -191,4 +195,39 @@ QByteArray QGitHubReleaseAPI::tarBall(int idx) const {
 QByteArray QGitHubReleaseAPI::zipBall(int idx) const {
 	Q_D(const QGitHubReleaseAPI);
 	return d->zipBall(idx);
+}
+
+QString QGitHubReleaseAPI::targetCommitish(int idx) const {
+	Q_D(const QGitHubReleaseAPI);
+	return d->targetCommitish(idx);
+}
+
+bool QGitHubReleaseAPI::isDraft(int idx) const {
+	Q_D(const QGitHubReleaseAPI);
+	return d->isDraft(idx);
+}
+
+bool QGitHubReleaseAPI::isPreRelease(int idx) const {
+	Q_D(const QGitHubReleaseAPI);
+	return d->isPreRelease(idx);
+}
+
+QString QGitHubReleaseAPI::eTag() const {
+	Q_D(const QGitHubReleaseAPI);
+	return d->eTag();
+}
+
+void QGitHubReleaseAPI::setETag(const QString &eTag) {
+	Q_D(QGitHubReleaseAPI);
+	d->setETag(eTag);
+}
+
+QUrl QGitHubReleaseAPI::authorHtmlUrl(int idx) const {
+	Q_D(const QGitHubReleaseAPI);
+	return d->authorHtmlUrl(idx);
+}
+
+QDateTime QGitHubReleaseAPI::createdAt(int idx) const {
+	Q_D(const QGitHubReleaseAPI);
+	return d->createdAt(idx);
 }
