@@ -27,6 +27,7 @@
 
 #include "export.h"
 
+class QFile;
 class QGitHubReleaseAPIPrivate;
 
 class QGITHUBRELEASEAPI_EXPORT QGitHubReleaseAPI : public QObject {
@@ -100,7 +101,9 @@ public:
 	QUrl tarBallUrl(int idx = 0) const;
 	QUrl zipBallUrl(int idx = 0) const;
 	QByteArray tarBall(int idx = 0) const;
+	int tarBall(QFile &of, int idx = 0) const;
 	QByteArray zipBall(int idx = 0) const;
+	int zipBall(QFile &of, int idx = 0) const;
 	QString targetCommitish(int idx = 0) const;
 	bool isDraft(int idx = 0) const;
 	bool isPreRelease(int idx = 0) const;

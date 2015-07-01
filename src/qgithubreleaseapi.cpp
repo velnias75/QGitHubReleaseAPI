@@ -192,9 +192,19 @@ QByteArray QGitHubReleaseAPI::tarBall(int idx) const {
 	return d->tarBall(idx);
 }
 
+int QGitHubReleaseAPI::tarBall(QFile &of, int idx) const {
+	Q_D(const QGitHubReleaseAPI);
+	return d->tarBall(of, idx);
+}
+
 QByteArray QGitHubReleaseAPI::zipBall(int idx) const {
 	Q_D(const QGitHubReleaseAPI);
 	return d->zipBall(idx);
+}
+
+int QGitHubReleaseAPI::zipBall(QFile &of, int idx) const {
+	Q_D(const QGitHubReleaseAPI);
+	return d->zipBall(of, idx);
 }
 
 QString QGitHubReleaseAPI::targetCommitish(int idx) const {

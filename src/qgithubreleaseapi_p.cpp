@@ -20,6 +20,7 @@
 #include <QImage>
 #include <QRegExp>
 #include <QEventLoop>
+#include <QMutexLocker>
 
 #if QT_VERSION >= QT_VERSION_CHECK(4, 5, 0)
 #include <QBuffer>
@@ -40,6 +41,10 @@ extern "C" {
 
 #include "qgithubreleaseapi_p.h"
 #include "filedownloader.h"
+
+namespace {
+QMutex dlMutex;
+}
 
 const char *QGitHubReleaseAPIPrivate::m_userAgent = "QGitHubReleaseAPI";
 const char *QGitHubReleaseAPIPrivate::m_outOfBoundsError =
@@ -94,14 +99,15 @@ QGitHubReleaseAPIPrivate::~QGitHubReleaseAPIPrivate() {
 }
 
 void QGitHubReleaseAPIPrivate::init() const {
-	QObject::connect(m_apiDownloader, SIGNAL(error(QString,QVariant*)),
-					 this, SLOT(fdError(QString,QVariant*)));
-	QObject::connect(m_apiDownloader, SIGNAL(downloaded(FileDownloader,QVariant*)),
-					 this, SLOT(downloaded(FileDownloader,QVariant*)));
-	QObject::connect(m_apiDownloader, SIGNAL(progress(qint64,qint64,QVariant*)),
-					 this, SLOT(downloadProgress(qint64,qint64,QVariant*)));
+
+	QObject::connect(m_apiDownloader, SIGNAL(error(QString)), this, SLOT(fdError(QString)));
+	QObject::connect(m_apiDownloader, SIGNAL(downloaded(FileDownloader)),
+					 this, SLOT(downloaded(FileDownloader)));
+	QObject::connect(m_apiDownloader, SIGNAL(progress(qint64,qint64)),
+					 this, SLOT(downloadProgress(qint64,qint64)));
 
 	m_apiDownloader->start();
+
 }
 
 QImage QGitHubReleaseAPIPrivate::avatar(int idx) const {
@@ -118,39 +124,71 @@ QImage QGitHubReleaseAPIPrivate::avatar(int idx) const {
 
 QByteArray QGitHubReleaseAPIPrivate::downloadFile(const QUrl &u) const {
 
-	QEventLoop wait;
-	QVariant file(QVariant::ByteArray);
+	QByteArray ba;
+	QBuffer buf(&ba);
 
-	FileDownloader dl(u, m_userAgent, m_eTag);
+	if(!(buf.open(QIODevice::WriteOnly) && downloadFile(u, &buf) != -1)) {
+		emit error(buf.errorString());
+	}
 
-	dl.setCacheLoadControlAttribute(QNetworkRequest::PreferCache);
-	dl.setUserData(file);
+	ba.squeeze();
 
-	QObject::connect(this, SIGNAL(avatarStopWait()), &wait, SLOT(quit()));
-	QObject::connect(&dl, SIGNAL(downloaded(FileDownloader,QVariant*)),
-					 this, SLOT(fileDownloaded(FileDownloader,QVariant*)));
-	QObject::connect(&dl, SIGNAL(error(QString,QVariant*)),
-					 this, SLOT(fileDownloadError(QString,QVariant*)));
-	QObject::connect(&dl, SIGNAL(progress(qint64,qint64,QVariant*)),
-					 this, SLOT(fileDownloadProgress(qint64,qint64,QVariant*)));
-	dl.start();
-
-	wait.exec();
-
-	return file.toByteArray();
+	return ba;
 }
 
-void QGitHubReleaseAPIPrivate::fileDownloaded(const FileDownloader &fd, QVariant *ud) {
-	if(ud) ud->setValue(fd.downloadedData());
-	emit avatarStopWait();
+int QGitHubReleaseAPIPrivate::downloadFile(const QUrl &u, QIODevice *of) const {
+
+	m_readBytes = -1;
+
+	if(of) {
+
+		const QMutexLocker lock(&dlMutex);
+
+		QEventLoop wait;
+		FileDownloader dl(u, m_userAgent, m_eTag);
+
+		m_dlOutputFile = of;
+
+		dl.setCacheLoadControlAttribute(QNetworkRequest::PreferCache);
+
+		QObject::connect(this, SIGNAL(fileDownloadStopWait()), &wait, SLOT(quit()));
+		QObject::connect(&dl, SIGNAL(downloaded(FileDownloader)), &wait, SLOT(quit()));
+		QObject::connect(&dl, SIGNAL(replyChanged(QNetworkReply*)),
+				this, SLOT(updateReply(QNetworkReply*)));
+		QObject::connect(&dl, SIGNAL(error(QString)), this, SLOT(fileDownloadError(QString)));
+		QObject::connect(&dl, SIGNAL(progress(qint64,qint64)),
+						 this, SLOT(fileDownloadProgress(qint64,qint64)));
+
+		m_readReply = dl.start();
+
+		QObject::connect(m_readReply, SIGNAL(readyRead()), this, SLOT(readChunk()));
+
+		wait.exec();
+
+		QObject::disconnect(m_readReply, SIGNAL(readyRead()), this, SLOT(readChunk()));
+
+		m_dlOutputFile = 0L;
+	}
+
+	return m_readBytes;
 }
 
-void QGitHubReleaseAPIPrivate::fileDownloadError(const QString &err, QVariant *) {
+void QGitHubReleaseAPIPrivate::updateReply(QNetworkReply *r) {
+	QObject::disconnect(m_readReply, SIGNAL(readyRead()), this, SLOT(readChunk()));
+	QObject::connect(r, SIGNAL(readyRead()), this, SLOT(readChunk()));
+	m_readReply = r;
+}
+
+void QGitHubReleaseAPIPrivate::readChunk() {
+	m_readBytes += m_dlOutputFile->write(m_readReply->readAll());
+}
+
+void QGitHubReleaseAPIPrivate::fileDownloadError(const QString &err) {
 	emit error(err);
-	emit avatarStopWait();
+	emit fileDownloadStopWait();
 }
 
-void QGitHubReleaseAPIPrivate::fileDownloadProgress(qint64 br, qint64 bt, QVariant *) {
+void QGitHubReleaseAPIPrivate::fileDownloadProgress(qint64 br, qint64 bt) {
 	emit progress(br, bt);
 }
 
@@ -237,7 +275,7 @@ QString QGitHubReleaseAPIPrivate::body(int idx) const {
 	return QString::null;
 }
 
-void QGitHubReleaseAPIPrivate::downloadProgress(qint64 br, qint64 bt, QVariant *) {
+void QGitHubReleaseAPIPrivate::downloadProgress(qint64 br, qint64 bt) {
 	emit progress(br, bt);
 }
 
@@ -280,7 +318,13 @@ QVariant QGitHubReleaseAPIPrivate::parseJSon(const QByteArray &ba, QString &err)
 	return QVariant();
 }
 
-void QGitHubReleaseAPIPrivate::downloaded(const FileDownloader &fd, QVariant *) {
+void QGitHubReleaseAPIPrivate::downloaded(const FileDownloader &fd) {
+
+	QObject::connect(m_apiDownloader, SIGNAL(error(QString)), this, SLOT(fdError(QString)));
+	QObject::connect(m_apiDownloader, SIGNAL(downloaded(FileDownloader)),
+					 this, SLOT(downloaded(FileDownloader)));
+	QObject::connect(m_apiDownloader, SIGNAL(progress(qint64,qint64)),
+					 this, SLOT(downloadProgress(qint64,qint64)));
 
 	m_jsonData = fd.downloadedData();
 
@@ -318,7 +362,7 @@ void QGitHubReleaseAPIPrivate::downloaded(const FileDownloader &fd, QVariant *) 
 	}
 }
 
-void QGitHubReleaseAPIPrivate::fdError(const QString &err, QVariant *) {
+void QGitHubReleaseAPIPrivate::fdError(const QString &err) {
 	emit error(QString("network error: %1").arg(err));
 }
 
@@ -338,6 +382,14 @@ QByteArray QGitHubReleaseAPIPrivate::tarBall(int idx) const {
 	return downloadFile(tarBallUrl(idx));
 }
 
+int QGitHubReleaseAPIPrivate::tarBall(QFile &of, int idx) const {
+	return fileToFileDownload<&QGitHubReleaseAPIPrivate::tarBallUrl>(&of, idx);;
+}
+
 QByteArray QGitHubReleaseAPIPrivate::zipBall(int idx) const {
 	return downloadFile(zipBallUrl(idx));
+}
+
+int QGitHubReleaseAPIPrivate::zipBall(QFile &of, int idx) const {
+	return fileToFileDownload<&QGitHubReleaseAPIPrivate::zipBallUrl>(&of, idx);;
 }

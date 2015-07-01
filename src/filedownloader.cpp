@@ -23,8 +23,8 @@
 
 FileDownloader::FileDownloader(const QUrl &url, const char *userAgent,
 							   const QString &eTag, QObject *p) : QObject(p), m_WebCtrl(),
-	m_DownloadedData(), m_url(url), m_rawHeaderPairs(), m_reply(0L), m_userData(0L),
-	m_request(url) {
+	m_DownloadedData(), m_url(url), m_rawHeaderPairs(), m_reply(0L), m_request(url),
+	m_userAgent(userAgent) {
 
 	QObject::connect(&m_WebCtrl, SIGNAL(finished(QNetworkReply*)),
 					 SLOT(fileDownloaded(QNetworkReply*)));
@@ -46,12 +46,14 @@ FileDownloader::FileDownloader(const QUrl &url, const char *userAgent,
 
 FileDownloader::~FileDownloader() {}
 
-void FileDownloader::start() const {
+QNetworkReply *FileDownloader::start() const {
 
 	m_reply = m_WebCtrl.get(m_request);
 
 	QObject::connect(m_reply, SIGNAL(downloadProgress(qint64,qint64)),
 					 this, SLOT(downloadProgress(qint64,qint64)));
+
+	return m_reply;
 }
 
 void FileDownloader::setCacheLoadControlAttribute(QNetworkRequest::CacheLoadControl att) {
@@ -59,17 +61,17 @@ void FileDownloader::setCacheLoadControlAttribute(QNetworkRequest::CacheLoadCont
 }
 
 void FileDownloader::downloadProgress(qint64 bytesReceived, qint64 bytesTotal) {
-	emit progress(bytesReceived, bytesTotal, m_userData);
+	emit progress(bytesReceived, bytesTotal);
 }
 
 void FileDownloader::fileDownloaded(QNetworkReply *pReply) {
 
-	if(pReply->error() != QNetworkReply::NoError) {
-		emit error(pReply->errorString(), m_userData);
+	if(m_reply->error() != QNetworkReply::NoError) {
+		emit error(m_reply->errorString());
 	} else {
 
 		QVariant redirectTarget =
-				pReply->attribute(QNetworkRequest::RedirectionTargetAttribute);
+				m_reply->attribute(QNetworkRequest::RedirectionTargetAttribute);
 
 		if(!redirectTarget.isNull()) {
 
@@ -80,18 +82,19 @@ void FileDownloader::fileDownloaded(QNetworkReply *pReply) {
 								this, SLOT(downloadProgress(qint64,qint64)));
 
 			m_reply->deleteLater();
-
 			m_request.setUrl(m_url);
 			m_reply = m_WebCtrl.get(m_request);
 
 			QObject::connect(m_reply, SIGNAL(downloadProgress(qint64,qint64)),
 							 this, SLOT(downloadProgress(qint64,qint64)));
 
+			emit replyChanged(m_reply);
+
 		} else {
-			m_rawHeaderPairs = pReply->rawHeaderPairs();
+			m_rawHeaderPairs = m_reply->rawHeaderPairs();
 			m_DownloadedData = pReply->readAll();
-			pReply->deleteLater();
-			emit downloaded(*this, m_userData);
+			m_reply->deleteLater();
+			emit downloaded(*this);
 		}
 	}
 }

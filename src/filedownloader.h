@@ -35,13 +35,13 @@ public:
 				   QObject *parent = 0L);
 	virtual ~FileDownloader();
 
-	void start() const;
+	QNetworkReply *start() const;
+
+	inline QString userAgent() const {
+		return m_userAgent;
+	}
 
 	void setCacheLoadControlAttribute(QNetworkRequest::CacheLoadControl att);
-
-	inline void setUserData(QVariant &ud) {
-		m_userData = &ud;
-	}
 
 	inline QUrl url() const {
 		return m_url;
@@ -54,9 +54,10 @@ public:
 	}
 
 signals:
-	void downloaded(const FileDownloader &, QVariant *);
-	void error(const QString &, QVariant *);
-	void progress(qint64, qint64, QVariant *);
+	void downloaded(const FileDownloader &);
+	void error(const QString &);
+	void progress(qint64, qint64);
+	void replyChanged(QNetworkReply *);
 
 private slots:
 	void fileDownloaded(QNetworkReply *pReply);
@@ -68,8 +69,8 @@ private:
 	QUrl m_url;
 	QList<QNetworkReply::RawHeaderPair> m_rawHeaderPairs;
 	mutable QNetworkReply *m_reply;
-	QVariant *m_userData;
 	QNetworkRequest m_request;
+	QString m_userAgent;
 };
 
 #endif // FILEDOWNLOADER_H
