@@ -101,9 +101,9 @@ public:
 	QUrl tarBallUrl(int idx = 0) const;
 	QUrl zipBallUrl(int idx = 0) const;
 	QByteArray tarBall(int idx = 0) const;
-	int tarBall(QFile &of, int idx = 0) const;
+	qint64 tarBall(QFile &of, int idx = 0) const;
 	QByteArray zipBall(int idx = 0) const;
-	int zipBall(QFile &of, int idx = 0) const;
+	qint64 zipBall(QFile &of, int idx = 0) const;
 	QString targetCommitish(int idx = 0) const;
 	bool isDraft(int idx = 0) const;
 	bool isPreRelease(int idx = 0) const;
@@ -118,10 +118,15 @@ public:
 signals:
 	void available(const QGitHubReleaseAPI &);
 	void error(const QString &);
+	void canceled();
 	void progress(qint64 bytesReceived, qint64 bytesTotal);
+
+public slots:
+	void cancel();
 
 private slots:
 	void apiAvailable();
+	void apiCanceled();
 	void apiError(const QString &);
 	void apiDownloadProgress(qint64, qint64);
 

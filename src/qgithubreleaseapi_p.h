@@ -77,10 +77,10 @@ public:
 	}
 
 	QByteArray tarBall(int idx) const;
-	int tarBall(QFile &of, int idx) const;
+	qint64 tarBall(QFile &of, int idx) const;
 
 	QByteArray zipBall(int idx) const;
-	int zipBall(QFile &of, int idx) const;
+	qint64 zipBall(QFile &of, int idx) const;
 
 	inline QUrl zipBallUrl(int idx) const {
 		return entry<QUrl>(idx, "zipball_url");
@@ -161,31 +161,35 @@ public:
 		m_eTag = eTag;
 	}
 
+public slots:
+	void cancel();
+
 private slots:
 	void readChunk();
 	void updateReply(QNetworkReply *);
 	void downloaded(const FileDownloader &);
 	void fdError(const QString &);
+	void fdCanceled();
 	void fileDownloadError(const QString &);
 	void downloadProgress(qint64, qint64);
 	void fileDownloadProgress(qint64, qint64);
 
 signals:
 	void available();
+	void canceled();
 	void error(const QString &) const;
 	void progress(qint64, qint64);
-	void fileDownloadStopWait();
 
 private:
 	void init() const;
 	QVariant parseJSon(const QByteArray &ba, QString &err) const;
 	bool dataAvailable() const;
 
-	int downloadFile(const QUrl &u, QIODevice *of) const;
+	qint64 downloadFile(const QUrl &u, QIODevice *of) const;
 	QByteArray downloadFile(const QUrl &u) const;
 
 	template<QUrl (QGitHubReleaseAPIPrivate::*T)(int) const>
-	int fileToFileDownload(QFile *of, int idx) const {
+	qint64 fileToFileDownload(QFile *of, int idx) const {
 
 		int ok = 0;
 
@@ -235,7 +239,7 @@ private:
 	mutable QMap<int, QImage> m_avatars;
 	QString m_eTag;
 	mutable QIODevice *m_dlOutputFile;
-	mutable int m_readBytes;
+	mutable qint64 m_readBytes;
 	mutable QNetworkReply *m_readReply;
 	mutable qint64 m_bytesAvail;
 };

@@ -136,7 +136,7 @@ QByteArray QGitHubReleaseAPIPrivate::downloadFile(const QUrl &u) const {
 	return ba;
 }
 
-int QGitHubReleaseAPIPrivate::downloadFile(const QUrl &u, QIODevice *of) const {
+qint64 QGitHubReleaseAPIPrivate::downloadFile(const QUrl &u, QIODevice *of) const {
 
 	m_readBytes = -1;
 
@@ -151,10 +151,12 @@ int QGitHubReleaseAPIPrivate::downloadFile(const QUrl &u, QIODevice *of) const {
 
 		dl.setCacheLoadControlAttribute(QNetworkRequest::PreferCache);
 
-		QObject::connect(this, SIGNAL(fileDownloadStopWait()), &wait, SLOT(quit()));
+		QObject::connect(&dl, SIGNAL(canceled()), &wait, SLOT(quit()));
+		QObject::connect(&dl, SIGNAL(error(QString)), &wait, SLOT(quit()));
 		QObject::connect(&dl, SIGNAL(downloaded(FileDownloader)), &wait, SLOT(quit()));
 		QObject::connect(&dl, SIGNAL(replyChanged(QNetworkReply*)),
-				this, SLOT(updateReply(QNetworkReply*)));
+						 this, SLOT(updateReply(QNetworkReply*)));
+		QObject::connect(&dl, SIGNAL(canceled()), this, SLOT(fdCanceled()));
 		QObject::connect(&dl, SIGNAL(error(QString)), this, SLOT(fileDownloadError(QString)));
 		QObject::connect(&dl, SIGNAL(progress(qint64,qint64)),
 						 this, SLOT(fileDownloadProgress(qint64,qint64)));
@@ -162,13 +164,13 @@ int QGitHubReleaseAPIPrivate::downloadFile(const QUrl &u, QIODevice *of) const {
 		m_readReply = dl.start();
 
 		QObject::connect(m_readReply, SIGNAL(readyRead()), this, SLOT(readChunk()));
-
 		wait.exec();
-
 		QObject::disconnect(m_readReply, SIGNAL(readyRead()), this, SLOT(readChunk()));
 
 		m_dlOutputFile = 0L;
 	}
+
+	m_readReply = 0L;
 
 	return m_readBytes;
 }
@@ -185,11 +187,20 @@ void QGitHubReleaseAPIPrivate::readChunk() {
 
 void QGitHubReleaseAPIPrivate::fileDownloadError(const QString &err) {
 	emit error(err);
-	emit fileDownloadStopWait();
 }
 
 void QGitHubReleaseAPIPrivate::fileDownloadProgress(qint64 br, qint64 bt) {
 	emit progress(br, bt);
+}
+
+void QGitHubReleaseAPIPrivate::fdError(const QString &err) {
+	emit error(QString("network error: %1").arg(err));
+}
+
+void QGitHubReleaseAPIPrivate::fdCanceled() {
+	qWarning("Download canceled");
+	m_readBytes = -1;
+	emit canceled();
 }
 
 QString QGitHubReleaseAPIPrivate::body(int idx) const {
@@ -362,10 +373,6 @@ void QGitHubReleaseAPIPrivate::downloaded(const FileDownloader &fd) {
 	}
 }
 
-void QGitHubReleaseAPIPrivate::fdError(const QString &err) {
-	emit error(QString("network error: %1").arg(err));
-}
-
 bool QGitHubReleaseAPIPrivate::dataAvailable() const {
 	return !m_vdata.isEmpty();
 }
@@ -382,7 +389,7 @@ QByteArray QGitHubReleaseAPIPrivate::tarBall(int idx) const {
 	return downloadFile(tarBallUrl(idx));
 }
 
-int QGitHubReleaseAPIPrivate::tarBall(QFile &of, int idx) const {
+qint64 QGitHubReleaseAPIPrivate::tarBall(QFile &of, int idx) const {
 	return fileToFileDownload<&QGitHubReleaseAPIPrivate::tarBallUrl>(&of, idx);;
 }
 
@@ -390,6 +397,10 @@ QByteArray QGitHubReleaseAPIPrivate::zipBall(int idx) const {
 	return downloadFile(zipBallUrl(idx));
 }
 
-int QGitHubReleaseAPIPrivate::zipBall(QFile &of, int idx) const {
+qint64 QGitHubReleaseAPIPrivate::zipBall(QFile &of, int idx) const {
 	return fileToFileDownload<&QGitHubReleaseAPIPrivate::zipBallUrl>(&of, idx);;
+}
+
+void QGitHubReleaseAPIPrivate::cancel() {
+	if(m_readReply) m_readReply->abort();
 }

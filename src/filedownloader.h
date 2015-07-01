@@ -54,10 +54,15 @@ public:
 	}
 
 signals:
+	void canceled();
 	void downloaded(const FileDownloader &);
 	void error(const QString &);
 	void progress(qint64, qint64);
 	void replyChanged(QNetworkReply *);
+
+public slots:
+	void cancel(const FileDownloader &);
+	void abort() const;
 
 private slots:
 	void fileDownloaded(QNetworkReply *pReply);

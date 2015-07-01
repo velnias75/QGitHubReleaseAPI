@@ -41,7 +41,7 @@ FileDownloader::FileDownloader(const QUrl &url, const char *userAgent,
 	if(!eTag.isEmpty()) m_request.setRawHeader("If-None-Match", eTag.toLatin1());
 
 	m_request.setAttribute(QNetworkRequest::CacheLoadControlAttribute,
-						 QNetworkRequest::AlwaysNetwork);
+						   QNetworkRequest::AlwaysNetwork);
 }
 
 FileDownloader::~FileDownloader() {}
@@ -67,7 +67,13 @@ void FileDownloader::downloadProgress(qint64 bytesReceived, qint64 bytesTotal) {
 void FileDownloader::fileDownloaded(QNetworkReply *pReply) {
 
 	if(m_reply->error() != QNetworkReply::NoError) {
-		emit error(m_reply->errorString());
+
+		if(m_reply->error() != QNetworkReply::OperationCanceledError) {
+			emit error(m_reply->errorString());
+		} else {
+			emit canceled();
+		}
+
 	} else {
 
 		QVariant redirectTarget =
@@ -101,4 +107,12 @@ void FileDownloader::fileDownloaded(QNetworkReply *pReply) {
 
 const QByteArray &FileDownloader::downloadedData() const {
 	return m_DownloadedData;
+}
+
+void FileDownloader::abort() const {
+	m_reply->abort();
+}
+
+void FileDownloader::cancel(const FileDownloader &fd) {
+	fd.abort();
 }
