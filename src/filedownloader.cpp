@@ -24,7 +24,7 @@
 FileDownloader::FileDownloader(const QUrl &url, const char *userAgent,
 							   const QString &eTag, QObject *p) : QObject(p), m_WebCtrl(),
 	m_DownloadedData(), m_url(url), m_rawHeaderPairs(), m_reply(0L), m_request(url),
-	m_userAgent(userAgent) {
+	m_userAgent(userAgent), m_generic(false) {
 
 	QObject::connect(&m_WebCtrl, SIGNAL(finished(QNetworkReply*)),
 					 SLOT(fileDownloaded(QNetworkReply*)));
@@ -36,7 +36,6 @@ FileDownloader::FileDownloader(const QUrl &url, const char *userAgent,
 
 	m_request.setSslConfiguration(cnf);
 	m_request.setRawHeader("User-Agent", QByteArray(userAgent));
-	m_request.setRawHeader("Accept", QByteArray("application/vnd.github.v3.raw+json"));
 
 	if(!eTag.isEmpty()) m_request.setRawHeader("If-None-Match", eTag.toLatin1());
 
@@ -47,6 +46,10 @@ FileDownloader::FileDownloader(const QUrl &url, const char *userAgent,
 FileDownloader::~FileDownloader() {}
 
 QNetworkReply *FileDownloader::start() const {
+
+	m_request.setRawHeader("Accept", !m_generic ?
+							   QByteArray("application/vnd.github.v3.raw+json") :
+							   QByteArray("application/octet-stream"));
 
 	m_reply = m_WebCtrl.get(m_request);
 

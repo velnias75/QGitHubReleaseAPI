@@ -95,6 +95,7 @@ QGitHubReleaseAPIPrivate::QGitHubReleaseAPIPrivate(const QString &user, const QS
 }
 
 QGitHubReleaseAPIPrivate::~QGitHubReleaseAPIPrivate() {
+	cancel();
 	delete m_apiDownloader;
 }
 
@@ -122,12 +123,12 @@ QImage QGitHubReleaseAPIPrivate::avatar(int idx) const {
 	return QImage();
 }
 
-QByteArray QGitHubReleaseAPIPrivate::downloadFile(const QUrl &u) const {
+QByteArray QGitHubReleaseAPIPrivate::downloadFile(const QUrl &u, bool generic) const {
 
 	QByteArray ba;
 	QBuffer buf(&ba);
 
-	if(!(buf.open(QIODevice::WriteOnly) && downloadFile(u, &buf) != -1)) {
+	if(!(buf.open(QIODevice::WriteOnly) && downloadFile(u, &buf, generic) != -1)) {
 		emit error(buf.errorString());
 	}
 
@@ -136,7 +137,7 @@ QByteArray QGitHubReleaseAPIPrivate::downloadFile(const QUrl &u) const {
 	return ba;
 }
 
-qint64 QGitHubReleaseAPIPrivate::downloadFile(const QUrl &u, QIODevice *of) const {
+qint64 QGitHubReleaseAPIPrivate::downloadFile(const QUrl &u, QIODevice *of, bool generic) const {
 
 	m_readBytes = -1;
 
@@ -150,6 +151,7 @@ qint64 QGitHubReleaseAPIPrivate::downloadFile(const QUrl &u, QIODevice *of) cons
 		m_dlOutputFile = of;
 
 		dl.setCacheLoadControlAttribute(QNetworkRequest::PreferCache);
+		dl.setGeneric(generic);
 
 		QObject::connect(&dl, SIGNAL(canceled()), &wait, SLOT(quit()));
 		QObject::connect(&dl, SIGNAL(error(QString)), &wait, SLOT(quit()));

@@ -80,6 +80,9 @@ public:
 	QUrl apiUrl() const;
 	int entries() const;
 
+	QByteArray downloadToMemory(const QUrl &url) const;
+	qint64 downloadToFile(const QUrl url, QFile &of) const;
+
 	QString eTag() const;
 	void setETag(const QString &eTag);
 

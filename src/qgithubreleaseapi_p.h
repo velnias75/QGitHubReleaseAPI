@@ -49,6 +49,9 @@ public:
 		m_userAgent = ua;
 	}
 
+	QByteArray downloadFile(const QUrl &u, bool generic = false) const;
+	qint64 downloadFile(const QUrl &u, QIODevice *of, bool generic = false) const;
+
 	QUrl apiUrl() const;
 	int entries() const;
 
@@ -184,9 +187,6 @@ private:
 	void init() const;
 	QVariant parseJSon(const QByteArray &ba, QString &err) const;
 	bool dataAvailable() const;
-
-	qint64 downloadFile(const QUrl &u, QIODevice *of) const;
-	QByteArray downloadFile(const QUrl &u) const;
 
 	template<QUrl (QGitHubReleaseAPIPrivate::*T)(int) const>
 	qint64 fileToFileDownload(QFile *of, int idx) const {

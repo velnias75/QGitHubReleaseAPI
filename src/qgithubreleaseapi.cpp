@@ -251,3 +251,13 @@ void QGitHubReleaseAPI::cancel() {
 	Q_D(QGitHubReleaseAPI);
 	return d->cancel();
 }
+
+QByteArray QGitHubReleaseAPI::downloadToMemory(const QUrl &url) const {
+	Q_D(const QGitHubReleaseAPI);
+	return d->downloadFile(url);
+}
+
+qint64 QGitHubReleaseAPI::downloadToFile(const QUrl url, QFile &of) const {
+	Q_D(const QGitHubReleaseAPI);
+	return d->downloadFile(url, &of);
+}

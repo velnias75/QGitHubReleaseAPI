@@ -41,6 +41,10 @@ public:
 		return m_userAgent;
 	}
 
+	inline void setGeneric(bool b) {
+		m_generic = b;
+	}
+
 	void setCacheLoadControlAttribute(QNetworkRequest::CacheLoadControl att);
 
 	inline QUrl url() const {
@@ -74,8 +78,9 @@ private:
 	QUrl m_url;
 	QList<QNetworkReply::RawHeaderPair> m_rawHeaderPairs;
 	mutable QNetworkReply *m_reply;
-	QNetworkRequest m_request;
+	mutable QNetworkRequest m_request;
 	QString m_userAgent;
+	bool m_generic;
 };
 
 #endif // FILEDOWNLOADER_H
