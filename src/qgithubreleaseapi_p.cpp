@@ -341,7 +341,7 @@ void QGitHubReleaseAPIPrivate::downloaded(const FileDownloader &fd) {
 
 	m_jsonData = fd.downloadedData();
 
-	foreach(const QNetworkReply::RawHeaderPair &pair, fd.rawHeaderPairs()) {
+	foreach(const FileDownloader::RAWHEADERPAIR &pair, fd.rawHeaderPairs()) {
 
 		if(pair.first == "ETag") m_eTag = pair.second.mid(2);
 

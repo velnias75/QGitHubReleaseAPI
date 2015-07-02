@@ -45,8 +45,7 @@ set(LIB_MOC_HDRS src/qgithubreleaseapi.h src/qgithubreleaseapi_p.h src/filedownl
 qt4_wrap_cpp(LIB_MOC_SRCS ${LIB_MOC_HDRS})
 
 add_compiler_export_flags()
-add_library(qgithubreleaseapi SHARED ${LIB_MOC_SRCS} ${LIB_SRCS})
-add_library(qgithubreleaseapi_static STATIC ${LIB_MOC_SRCS} ${LIB_SRCS})
+add_library(qgithubreleaseapi ${LIB_MOC_SRCS} ${LIB_SRCS})
 
 generate_export_header(qgithubreleaseapi EXPORT_FILE_NAME export.h)
 
@@ -69,7 +68,6 @@ configure_file(${CMAKE_SOURCE_DIR}/qgithubreleaseapi.pc.in
 			   ${PROJECT_BINARY_DIR}/qgithubreleaseapi.pc @ONLY)
 
 install(TARGETS qgithubreleaseapi DESTINATION lib)
-install(TARGETS qgithubreleaseapi_static DESTINATION lib)
 install(FILES src/qgithubreleaseapi.h DESTINATION include/qgithubreleaseapi)
 install(FILES ${PROJECT_BINARY_DIR}/export.h DESTINATION include/qgithubreleaseapi)
 install(FILES ${PROJECT_BINARY_DIR}/qgithubreleaseapi.pc DESTINATION lib/pkgconfig)

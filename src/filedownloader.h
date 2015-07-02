@@ -31,6 +31,13 @@ class QGITHUBRELEASEAPI_NO_EXPORT FileDownloader : public QObject {
 	Q_OBJECT
 	Q_DISABLE_COPY(FileDownloader)
 public:
+#if QT_VERSION >= QT_VERSION_CHECK(4, 7, 0)
+	typedef QNetworkReply::RawHeaderPair RAWHEADERPAIR;
+#else
+	typedef QPair<QByteArray, QByteArray> RAWHEADERPAIR;
+#endif
+	typedef QList<RAWHEADERPAIR> RAWHEADERPAIRLIST;
+
 	FileDownloader(const QUrl &url, const char *userAgent, const QString &eTag = QString::null,
 				   QObject *parent = 0L);
 	virtual ~FileDownloader();
@@ -53,7 +60,7 @@ public:
 
 	const QByteArray &downloadedData() const;
 
-	inline QList<QNetworkReply::RawHeaderPair> rawHeaderPairs() const {
+	inline RAWHEADERPAIRLIST rawHeaderPairs() const {
 		return m_rawHeaderPairs;
 	}
 
@@ -76,7 +83,7 @@ private:
 	mutable QNetworkAccessManager m_WebCtrl;
 	QByteArray m_DownloadedData;
 	QUrl m_url;
-	QList<QNetworkReply::RawHeaderPair> m_rawHeaderPairs;
+	RAWHEADERPAIRLIST m_rawHeaderPairs;
 	mutable QNetworkReply *m_reply;
 	mutable QNetworkRequest m_request;
 	QString m_userAgent;

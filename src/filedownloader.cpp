@@ -100,7 +100,16 @@ void FileDownloader::fileDownloaded(QNetworkReply *pReply) {
 			emit replyChanged(m_reply);
 
 		} else {
+#if QT_VERSION >= QT_VERSION_CHECK(4, 7, 0)
 			m_rawHeaderPairs = m_reply->rawHeaderPairs();
+#else
+			m_rawHeaderPairs.clear();
+
+			foreach(const QByteArray &rhk, m_reply->rawHeaderList()) {
+				m_rawHeaderPairs.append(RAWHEADERPAIR(rhk, m_reply->rawHeader(rhk)));
+			}
+#endif
+
 			m_DownloadedData = pReply->readAll();
 			m_reply->deleteLater();
 			emit downloaded(*this);
