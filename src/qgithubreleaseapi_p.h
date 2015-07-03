@@ -26,6 +26,7 @@
 #include <QVariantList>
 
 #include "export.h"
+#include "qgithubreleaseapi.h"
 
 class QFile;
 class QNetworkReply;
@@ -36,13 +37,14 @@ class QGITHUBRELEASEAPI_NO_EXPORT QGitHubReleaseAPIPrivate : public QObject {
 	Q_DISABLE_COPY(QGitHubReleaseAPIPrivate)
 
 public:
-	QGitHubReleaseAPIPrivate(const QUrl &apiUrl, bool multi, bool prerenderd, QObject *parent = 0);
-	QGitHubReleaseAPIPrivate(const QString &user, const QString &repo, bool latest, bool prerenderd,
-							 QObject *p = 0);
-	QGitHubReleaseAPIPrivate(const QString &user, const QString &repo, const QString &tag,
-							 bool prerenderd, QObject *parent = 0);
-	QGitHubReleaseAPIPrivate(const QString &user, const QString &repo, int limit, bool prerenderd,
+	QGitHubReleaseAPIPrivate(const QUrl &apiUrl, bool multi, QGitHubReleaseAPI::TYPE type,
 							 QObject *parent = 0);
+	QGitHubReleaseAPIPrivate(const QString &user, const QString &repo, bool latest,
+							 QGitHubReleaseAPI::TYPE type, QObject *p = 0);
+	QGitHubReleaseAPIPrivate(const QString &user, const QString &repo, const QString &tag,
+							 QGitHubReleaseAPI::TYPE type, QObject *parent = 0);
+	QGitHubReleaseAPIPrivate(const QString &user, const QString &repo, int limit,
+							 QGitHubReleaseAPI::TYPE type, QObject *parent = 0);
 
 	virtual ~QGitHubReleaseAPIPrivate();
 
@@ -244,7 +246,7 @@ private:
 	mutable qint64 m_readBytes;
 	mutable QNetworkReply *m_readReply;
 	mutable qint64 m_bytesAvail;
-	bool m_prerenderd;
+	QGitHubReleaseAPI::TYPE m_type;
 };
 
 #endif // QGITHUBRELEASEAPI_P_H

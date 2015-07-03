@@ -45,11 +45,19 @@ FileDownloader::FileDownloader(const QUrl &url, const char *userAgent,
 
 FileDownloader::~FileDownloader() {}
 
-QNetworkReply *FileDownloader::start(bool prerendered) const {
+QNetworkReply *FileDownloader::start(QGitHubReleaseAPI::TYPE type) const {
+
+	QString sType;
+
+	switch(type) {
+	case QGitHubReleaseAPI::RAW: sType = "raw"; break;
+	case QGitHubReleaseAPI::TEXT: sType = "text"; break;
+	case QGitHubReleaseAPI::HTML: sType = "html"; break;
+	}
 
 	m_request.setRawHeader("Accept", !m_generic ?
 							   QByteArray(QString("application/vnd.github.v3.%1+json").
-										  arg(prerendered ? "html" : "raw").toLatin1()) :
+										  arg(sType).toLatin1()) :
 							   QByteArray("application/octet-stream"));
 
 	m_reply = m_WebCtrl.get(m_request);

@@ -26,6 +26,7 @@
 #include <QNetworkAccessManager>
 
 #include "export.h"
+#include "qgithubreleaseapi.h"
 
 class QGITHUBRELEASEAPI_NO_EXPORT FileDownloader : public QObject {
 	Q_OBJECT
@@ -42,7 +43,7 @@ public:
 				   QObject *parent = 0L);
 	virtual ~FileDownloader();
 
-	QNetworkReply *start(bool prerendered) const;
+	QNetworkReply *start(QGitHubReleaseAPI::TYPE type) const;
 
 	inline QString userAgent() const {
 		return m_userAgent;
