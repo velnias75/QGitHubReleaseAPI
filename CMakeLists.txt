@@ -21,6 +21,9 @@ set(QT_USE_QTNETWORK TRUE)
 
 include(${QT_USE_FILE})
 
+execute_process(COMMAND qmake -query QMAKE_MKSPECS OUTPUT_VARIABLE QMAKEMKSPECS
+				OUTPUT_STRIP_TRAILING_WHITESPACE)
+
 add_definitions(${QT_DEFINITIONS})
 add_definitions(-DQT_NO_CAST_FROM_BYTEARRAY -DQT_NO_CAST_TO_ASCII -DQT_USE_FAST_OPERATOR_PLUS
 				-DQT_USE_FAST_CONCATENATION -DQT_STRICT_ITERATORS -DQT_NO_URL_CAST_FROM_STRING
@@ -90,3 +93,4 @@ install(TARGETS qgithubreleaseapi_static DESTINATION lib)
 install(FILES src/qgithubreleaseapi.h DESTINATION include/qgithubreleaseapi)
 install(FILES ${PROJECT_BINARY_DIR}/export.h DESTINATION include/qgithubreleaseapi)
 install(FILES ${PROJECT_BINARY_DIR}/qgithubreleaseapi.pc DESTINATION lib/pkgconfig)
+install(FILES qgithubreleaseapi.prf DESTINATION ${QMAKEMKSPECS}/features)
