@@ -52,50 +52,52 @@ const char *QGitHubReleaseAPIPrivate::m_outOfBoundsError =
 const char *QGitHubReleaseAPIPrivate::m_noDataAvailableError =
 		QT_TRANSLATE_NOOP("QGitHubReleaseAPIPrivate", "No data available");
 
-QGitHubReleaseAPIPrivate::QGitHubReleaseAPIPrivate(const QUrl &apiUrl, bool multi, bool prerenderd,
-												   QObject *p) : QObject(p),
-	m_apiDownloader(new FileDownloader(apiUrl, m_userAgent)), m_jsonData(),
+QGitHubReleaseAPIPrivate::QGitHubReleaseAPIPrivate(const QUrl &apiUrl, bool multi,
+												   QGitHubReleaseAPI::TYPE type, QObject *p) :
+	QObject(p), m_apiDownloader(new FileDownloader(apiUrl, m_userAgent)), m_jsonData(), m_vdata(),
 	m_errorString(), m_rateLimit(0), m_rateLimitRemaining(0), m_singleEntryRequested(!multi),
-	m_avatars(), m_eTag(QString::null), m_prerenderd(prerenderd) {
+	m_rateLimitReset(), m_avatars(), m_eTag(QString::null), m_dlOutputFile(0L), m_readBytes(-1),
+	m_readReply(0L), m_bytesAvail(-1), m_type(type) {
 	init();
 }
 
 QGitHubReleaseAPIPrivate::QGitHubReleaseAPIPrivate(const QString &user, const QString &repo,
-												   bool latest, bool prerenderd, QObject *p) :
-	QObject(p),
+												   bool latest, QGitHubReleaseAPI::TYPE type,
+												   QObject *p) : QObject(p),
 	m_apiDownloader(new FileDownloader(QUrl(QString("https://api.github.com/repos/%1/%2/releases%3")
 											.arg(QString(QUrl::toPercentEncoding(user)))
 											.arg(QString(QUrl::toPercentEncoding(repo)))
 											.arg(latest ? "/latest" : "")), m_userAgent)),
-	m_jsonData(), m_errorString(), m_rateLimit(0), m_rateLimitRemaining(0),
-	m_singleEntryRequested(latest), m_avatars(), m_eTag(QString::null), m_prerenderd(prerenderd) {
+	m_jsonData(), m_vdata(), m_errorString(), m_rateLimit(0), m_rateLimitRemaining(0),
+	m_singleEntryRequested(latest), m_rateLimitReset(), m_avatars(), m_eTag(QString::null),
+	m_dlOutputFile(0L), m_readBytes(-1), m_readReply(0L), m_bytesAvail(-1), m_type(type) {
 	init();
 }
 
 QGitHubReleaseAPIPrivate::QGitHubReleaseAPIPrivate(const QString &user, const QString &repo,
-												   const QString &tag, bool prerenderd, QObject *p)
-	: QObject(p),
-	  m_apiDownloader(new FileDownloader(QUrl(QString("https://api.github.com/repos/%1/%2" \
-													  "/releases/tags/%3")
-											  .arg(QString(QUrl::toPercentEncoding(user)))
-											  .arg(QString(QUrl::toPercentEncoding(repo)))
-											  .arg(QString(QUrl::toPercentEncoding(tag)))),
-										 m_userAgent)), m_jsonData(), m_errorString(),
-	  m_rateLimit(0), m_rateLimitRemaining(0), m_singleEntryRequested(true), m_avatars(),
-	  m_eTag(QString::null), m_prerenderd(prerenderd) {
+												   const QString &tag, QGitHubReleaseAPI::TYPE type,
+												   QObject *p) : QObject(p),
+	m_apiDownloader(new FileDownloader(QUrl(QString("https://api.github.com/repos/%1/%2" \
+													"/releases/tags/%3")
+											.arg(QString(QUrl::toPercentEncoding(user)))
+											.arg(QString(QUrl::toPercentEncoding(repo)))
+											.arg(QString(QUrl::toPercentEncoding(tag)))),
+									   m_userAgent)), m_jsonData(), m_errorString(),
+	m_rateLimit(0), m_rateLimitRemaining(0), m_singleEntryRequested(true), m_avatars(),
+	m_eTag(QString::null), m_type(type) {
 	init();
 }
 
 QGitHubReleaseAPIPrivate::QGitHubReleaseAPIPrivate(const QString &user, const QString &repo,
-												   int limit, bool prerenderd, QObject *p) :
-	QObject(p),
+												   int limit, QGitHubReleaseAPI::TYPE type,
+												   QObject *p) : QObject(p),
 	m_apiDownloader(new FileDownloader(QUrl(QString("https://api.github.com/repos/%1/%2/" \
 													"releases?per_page=%3").
 											arg(QString(QUrl::toPercentEncoding(user))).
 											arg(QString(QUrl::toPercentEncoding(repo))).
 											arg(limit)), m_userAgent)), m_jsonData(),
 	m_errorString(), m_rateLimit(0), m_rateLimitRemaining(0), m_singleEntryRequested(false),
-	m_avatars(), m_eTag(QString::null), m_prerenderd(prerenderd) {
+	m_avatars(), m_eTag(QString::null), m_type(type) {
 	init();
 }
 
@@ -112,7 +114,7 @@ void QGitHubReleaseAPIPrivate::init() const {
 	QObject::connect(m_apiDownloader, SIGNAL(progress(qint64,qint64)),
 					 this, SLOT(downloadProgress(qint64,qint64)));
 
-	m_apiDownloader->start(m_prerenderd);
+	m_apiDownloader->start(m_type);
 
 }
 
@@ -168,7 +170,7 @@ qint64 QGitHubReleaseAPIPrivate::downloadFile(const QUrl &u, QIODevice *of, bool
 		QObject::connect(&dl, SIGNAL(progress(qint64,qint64)),
 						 this, SLOT(fileDownloadProgress(qint64,qint64)));
 
-		m_readReply = dl.start(false);
+		m_readReply = dl.start(QGitHubReleaseAPI::RAW);
 
 		QObject::connect(m_readReply, SIGNAL(readyRead()), this, SLOT(readChunk()));
 		wait.exec();
@@ -225,28 +227,36 @@ QString QGitHubReleaseAPIPrivate::body(int idx) const {
 			const mkd_flag_t f = MKD_TOC|MKD_AUTOLINK|MKD_NOEXT|MKD_NOHEADER|MKD_NOIMAGE;
 #endif
 
-			if(!m_prerenderd) {
+			switch(m_type) {
+			case QGitHubReleaseAPI::RAW: {
+					MMIOT *doc = 0L;
+					char *html = 0L;
+					int dlen   = EOF;
 
-				MMIOT *doc = 0L;
-				char *html = 0L;
-				int dlen   = EOF;
+					if((doc = mkd_string(bMD.toStdString().c_str(), bMD.length(), f)) &&
+							mkd_compile(doc, f) != EOF && (dlen = mkd_document(doc, &html)) != EOF) {
 
-				if((doc = mkd_string(bMD.toStdString().c_str(), bMD.length(), f)) &&
-						mkd_compile(doc, f) != EOF && (dlen = mkd_document(doc, &html)) != EOF) {
+						QString b(QString::fromUtf8((QByteArray(html,
+																dlen).append('\0')).constData()));
+						mkd_cleanup(doc);
 
-					QString b(QString::fromUtf8((QByteArray(html,
-															dlen).append('\0')).constData()));
-					mkd_cleanup(doc);
+						return embedImages(b);
 
+					} else {
+						emit error(tr("libmarkdown: parsing failed"));
+					}
+
+				} break;
+			case QGitHubReleaseAPI::HTML: {
+					QString b(m_vdata[idx].toMap()["body_html"].toString());
 					return embedImages(b);
-
-				} else {
-					emit error(tr("libmarkdown: parsing failed"));
-				}
-
-			} else {
-				QString b(m_vdata[idx].toMap()["body_html"].toString());
-				return embedImages(b);
+				} break;
+			default:
+				return m_vdata[idx].toMap()["body_text"].toString().
+						append(QString::fromUtf8("\n\n--\nRelease information provided by " \
+						"QGitHubReleaseAPI "
+						PROJECTVERSION
+						" \u00a9 2015 Heiko Sch\u00e4fer <heiko@rangun.de>"));
 			}
 
 		} else {
@@ -303,8 +313,8 @@ QString QGitHubReleaseAPIPrivate::embedImages(QString &b) const {
 			 PROJECTVERSION
 			 "\">heiko@rangun.de</a>&gt;");
 
-	if(!m_prerenderd) b.append(QString("<br />Markdown rendered with <em>libmarkdown %1</em>").
-							   arg(markdown_version));
+	if(!m_type) b.append(QString("<br />Markdown rendered with <em>libmarkdown %1</em>").
+						 arg(markdown_version));
 
 	return b.append("</p>");
 }
@@ -425,5 +435,5 @@ qint64 QGitHubReleaseAPIPrivate::zipBall(QFile &of, int idx) const {
 }
 
 void QGitHubReleaseAPIPrivate::cancel() {
-	if(m_readReply) m_readReply->abort();
+	if(m_readReply && m_readReply->isRunning()) m_readReply->abort();
 }

@@ -63,24 +63,25 @@ class QGITHUBRELEASEAPI_EXPORT QGitHubReleaseAPI : public QObject {
 	Q_PROPERTY(bool prerelease READ isPreRelease)
 
 public:
+	typedef enum { RAW, TEXT, HTML} TYPE;
+
 	explicit QGitHubReleaseAPI(const QUrl &apiUrl, bool multi = true, QObject *parent = 0);
-	QGitHubReleaseAPI(const QUrl &apiUrl, bool prerendered, bool multi = true,
-					  QObject *parent = 0);
+	QGitHubReleaseAPI(const QUrl &apiUrl, TYPE type, bool multi = true, QObject *parent = 0);
 	QGitHubReleaseAPI(const QString &user, const QString &repo, bool latest = true,
 					  QObject *parent = 0);
-	QGitHubReleaseAPI(const QString &user, const QString &repo, bool prerendered,
-					  bool latest = true, QObject *parent = 0);
-	QGitHubReleaseAPI(const QString &user, const QString &repo, const QString &tag,
+	QGitHubReleaseAPI(const QString &user, const QString &repo, TYPE type, bool latest = true,
 					  QObject *parent = 0);
 	QGitHubReleaseAPI(const QString &user, const QString &repo, const QString &tag,
-					  bool prerendered, QObject *parent = 0);
+					  QObject *parent = 0);
+	QGitHubReleaseAPI(const QString &user, const QString &repo, const QString &tag, TYPE type,
+					  QObject *parent = 0);
 	QGitHubReleaseAPI(const QString &user, const QString &repo, const char *tag,
 					  QObject *parent = 0);
-	QGitHubReleaseAPI(const QString &user, const QString &repo, const char *tag, bool prerendered,
+	QGitHubReleaseAPI(const QString &user, const QString &repo, const char *tag, TYPE type,
 					  QObject *parent = 0);
 	QGitHubReleaseAPI(const QString &user, const QString &repo, int perPage,
 					  QObject *parent = 0);
-	QGitHubReleaseAPI(const QString &user, const QString &repo, int perPage, bool prerendered,
+	QGitHubReleaseAPI(const QString &user, const QString &repo, int perPage, TYPE type,
 					  QObject *parent = 0);
 
 	virtual ~QGitHubReleaseAPI();
