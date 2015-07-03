@@ -36,11 +36,12 @@ class QGITHUBRELEASEAPI_NO_EXPORT QGitHubReleaseAPIPrivate : public QObject {
 	Q_DISABLE_COPY(QGitHubReleaseAPIPrivate)
 
 public:
-	QGitHubReleaseAPIPrivate(const QUrl &apiUrl, bool multi, QObject *parent = 0);
-	QGitHubReleaseAPIPrivate(const QString &user, const QString &repo, bool latest, QObject *p = 0);
+	QGitHubReleaseAPIPrivate(const QUrl &apiUrl, bool multi, bool prerenderd, QObject *parent = 0);
+	QGitHubReleaseAPIPrivate(const QString &user, const QString &repo, bool latest, bool prerenderd,
+							 QObject *p = 0);
 	QGitHubReleaseAPIPrivate(const QString &user, const QString &repo, const QString &tag,
-							 QObject *parent = 0);
-	QGitHubReleaseAPIPrivate(const QString &user, const QString &repo, int limit,
+							 bool prerenderd, QObject *parent = 0);
+	QGitHubReleaseAPIPrivate(const QString &user, const QString &repo, int limit, bool prerenderd,
 							 QObject *parent = 0);
 
 	virtual ~QGitHubReleaseAPIPrivate();
@@ -186,6 +187,7 @@ signals:
 private:
 	void init() const;
 	QVariant parseJSon(const QByteArray &ba, QString &err) const;
+	QString embedImages(QString &b) const;
 	bool dataAvailable() const;
 
 	template<QUrl (QGitHubReleaseAPIPrivate::*T)(int) const>
@@ -242,6 +244,7 @@ private:
 	mutable qint64 m_readBytes;
 	mutable QNetworkReply *m_readReply;
 	mutable qint64 m_bytesAvail;
+	bool m_prerenderd;
 };
 
 #endif // QGITHUBRELEASEAPI_P_H

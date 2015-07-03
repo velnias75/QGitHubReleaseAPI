@@ -24,31 +24,61 @@
 #include "qgithubreleaseapi_p.h"
 
 QGitHubReleaseAPI::QGitHubReleaseAPI(const QUrl &apiUrl, bool multi, QObject *p) : QObject(p),
-	d_ptr(new QGitHubReleaseAPIPrivate(apiUrl, multi, this)) {
+	d_ptr(new QGitHubReleaseAPIPrivate(apiUrl, multi, false, this)) {
+	init();
+}
+
+QGitHubReleaseAPI::QGitHubReleaseAPI(const QUrl &apiUrl, bool prerendered, bool multi,
+									 QObject *p) : QObject(p),
+	d_ptr(new QGitHubReleaseAPIPrivate(apiUrl, multi, prerendered, this)) {
 	init();
 }
 
 QGitHubReleaseAPI::QGitHubReleaseAPI(const QString &user, const QString &repo, bool latest,
 									 QObject *p) : QObject(p),
-	d_ptr(new QGitHubReleaseAPIPrivate(user, repo, latest, this)) {
+	d_ptr(new QGitHubReleaseAPIPrivate(user, repo, latest, false, this)) {
+	init();
+}
+
+QGitHubReleaseAPI::QGitHubReleaseAPI(const QString &user, const QString &repo, bool prerendered,
+				  bool latest, QObject *p) : QObject(p),
+	d_ptr(new QGitHubReleaseAPIPrivate(user, repo, latest, prerendered, this)) {
 	init();
 }
 
 QGitHubReleaseAPI::QGitHubReleaseAPI(const QString &user, const QString &repo, const QString &tag,
 									 QObject *p) : QObject(p),
-	d_ptr(new QGitHubReleaseAPIPrivate(user, repo, tag, this)) {
+	d_ptr(new QGitHubReleaseAPIPrivate(user, repo, tag, false, this)) {
+	init();
+}
+
+QGitHubReleaseAPI::QGitHubReleaseAPI(const QString &user, const QString &repo, const QString &tag,
+				  bool prerendered, QObject *p) : QObject(p),
+	d_ptr(new QGitHubReleaseAPIPrivate(user, repo, tag, prerendered, this)) {
 	init();
 }
 
 QGitHubReleaseAPI::QGitHubReleaseAPI(const QString &user, const QString &repo, const char *tag,
 									 QObject *p) : QObject(p),
-	d_ptr(new QGitHubReleaseAPIPrivate(user, repo, QString(tag), this)) {
+	d_ptr(new QGitHubReleaseAPIPrivate(user, repo, QString(tag), false, this)) {
+	init();
+}
+
+QGitHubReleaseAPI::QGitHubReleaseAPI(const QString &user, const QString &repo, const char *tag,
+									 bool prerendered, QObject *p) : QObject(p),
+	d_ptr(new QGitHubReleaseAPIPrivate(user, repo, QString(tag), prerendered, this)) {
 	init();
 }
 
 QGitHubReleaseAPI::QGitHubReleaseAPI(const QString &user, const QString &repo, int perPage,
 									 QObject *p) : QObject(p),
-	d_ptr(new QGitHubReleaseAPIPrivate(user, repo, perPage, this)) {
+	d_ptr(new QGitHubReleaseAPIPrivate(user, repo, perPage, false, this)) {
+	init();
+}
+
+QGitHubReleaseAPI::QGitHubReleaseAPI(const QString &user, const QString &repo, int perPage,
+									 bool prerendered, QObject *p) : QObject(p),
+	d_ptr(new QGitHubReleaseAPIPrivate(user, repo, perPage, prerendered, this)) {
 	init();
 }
 

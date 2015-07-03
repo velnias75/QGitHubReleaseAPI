@@ -45,10 +45,11 @@ FileDownloader::FileDownloader(const QUrl &url, const char *userAgent,
 
 FileDownloader::~FileDownloader() {}
 
-QNetworkReply *FileDownloader::start() const {
+QNetworkReply *FileDownloader::start(bool prerendered) const {
 
 	m_request.setRawHeader("Accept", !m_generic ?
-							   QByteArray("application/vnd.github.v3.raw+json") :
+							   QByteArray(QString("application/vnd.github.v3.%1+json").
+										  arg(prerendered ? "html" : "raw").toLatin1()) :
 							   QByteArray("application/octet-stream"));
 
 	m_reply = m_WebCtrl.get(m_request);
