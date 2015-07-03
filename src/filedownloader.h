@@ -42,7 +42,7 @@ public:
 				   QObject *parent = 0L);
 	virtual ~FileDownloader();
 
-	QNetworkReply *start() const;
+	QNetworkReply *start(bool prerendered) const;
 
 	inline QString userAgent() const {
 		return m_userAgent;

@@ -63,14 +63,24 @@ class QGITHUBRELEASEAPI_EXPORT QGitHubReleaseAPI : public QObject {
 	Q_PROPERTY(bool prerelease READ isPreRelease)
 
 public:
-	QGitHubReleaseAPI(const QUrl &apiUrl, bool multi = true, QObject *parent = 0);
+	explicit QGitHubReleaseAPI(const QUrl &apiUrl, bool multi = true, QObject *parent = 0);
+	QGitHubReleaseAPI(const QUrl &apiUrl, bool prerendered, bool multi = true,
+					  QObject *parent = 0);
 	QGitHubReleaseAPI(const QString &user, const QString &repo, bool latest = true,
 					  QObject *parent = 0);
+	QGitHubReleaseAPI(const QString &user, const QString &repo, bool prerendered,
+					  bool latest = true, QObject *parent = 0);
 	QGitHubReleaseAPI(const QString &user, const QString &repo, const QString &tag,
 					  QObject *parent = 0);
+	QGitHubReleaseAPI(const QString &user, const QString &repo, const QString &tag,
+					  bool prerendered, QObject *parent = 0);
 	QGitHubReleaseAPI(const QString &user, const QString &repo, const char *tag,
 					  QObject *parent = 0);
+	QGitHubReleaseAPI(const QString &user, const QString &repo, const char *tag, bool prerendered,
+					  QObject *parent = 0);
 	QGitHubReleaseAPI(const QString &user, const QString &repo, int perPage,
+					  QObject *parent = 0);
+	QGitHubReleaseAPI(const QString &user, const QString &repo, int perPage, bool prerendered,
 					  QObject *parent = 0);
 
 	virtual ~QGitHubReleaseAPI();
