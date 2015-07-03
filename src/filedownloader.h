@@ -31,17 +31,28 @@ class QGITHUBRELEASEAPI_NO_EXPORT FileDownloader : public QObject {
 	Q_OBJECT
 	Q_DISABLE_COPY(FileDownloader)
 public:
+#if QT_VERSION >= QT_VERSION_CHECK(4, 7, 0)
+	typedef QNetworkReply::RawHeaderPair RAWHEADERPAIR;
+#else
+	typedef QPair<QByteArray, QByteArray> RAWHEADERPAIR;
+#endif
+	typedef QList<RAWHEADERPAIR> RAWHEADERPAIRLIST;
+
 	FileDownloader(const QUrl &url, const char *userAgent, const QString &eTag = QString::null,
 				   QObject *parent = 0L);
 	virtual ~FileDownloader();
 
-	void start() const;
+	QNetworkReply *start() const;
+
+	inline QString userAgent() const {
+		return m_userAgent;
+	}
+
+	inline void setGeneric(bool b) {
+		m_generic = b;
+	}
 
 	void setCacheLoadControlAttribute(QNetworkRequest::CacheLoadControl att);
-
-	inline void setUserData(QVariant &ud) {
-		m_userData = &ud;
-	}
 
 	inline QUrl url() const {
 		return m_url;
@@ -49,14 +60,20 @@ public:
 
 	const QByteArray &downloadedData() const;
 
-	inline QList<QNetworkReply::RawHeaderPair> rawHeaderPairs() const {
+	inline RAWHEADERPAIRLIST rawHeaderPairs() const {
 		return m_rawHeaderPairs;
 	}
 
 signals:
-	void downloaded(const FileDownloader &, QVariant *);
-	void error(const QString &, QVariant *);
-	void progress(qint64, qint64, QVariant *);
+	void canceled();
+	void downloaded(const FileDownloader &);
+	void error(const QString &);
+	void progress(qint64, qint64);
+	void replyChanged(QNetworkReply *);
+
+public slots:
+	void cancel(const FileDownloader &);
+	void abort() const;
 
 private slots:
 	void fileDownloaded(QNetworkReply *pReply);
@@ -66,10 +83,11 @@ private:
 	mutable QNetworkAccessManager m_WebCtrl;
 	QByteArray m_DownloadedData;
 	QUrl m_url;
-	QList<QNetworkReply::RawHeaderPair> m_rawHeaderPairs;
+	RAWHEADERPAIRLIST m_rawHeaderPairs;
 	mutable QNetworkReply *m_reply;
-	QVariant *m_userData;
-	QNetworkRequest m_request;
+	mutable QNetworkRequest m_request;
+	QString m_userAgent;
+	bool m_generic;
 };
 
 #endif // FILEDOWNLOADER_H

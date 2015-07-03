@@ -56,6 +56,7 @@ QGitHubReleaseAPI::~QGitHubReleaseAPI() {}
 
 void QGitHubReleaseAPI::init() const {
 	Q_D(const QGitHubReleaseAPI);
+	QObject::connect(d, SIGNAL(canceled()), this, SLOT(apiCanceled()));
 	QObject::connect(d, SIGNAL(available()), this, SLOT(apiAvailable()));
 	QObject::connect(d, SIGNAL(error(QString)), this, SLOT(apiError(QString)));
 	QObject::connect(d, SIGNAL(progress(qint64,qint64)),
@@ -68,6 +69,10 @@ void QGitHubReleaseAPI::setUserAgent(const char *ua) {
 
 void QGitHubReleaseAPI::apiAvailable() {
 	emit available(*this);
+}
+
+void QGitHubReleaseAPI::apiCanceled() {
+	emit canceled();
 }
 
 void QGitHubReleaseAPI::apiError(const QString &err) {
@@ -92,10 +97,10 @@ ulong QGitHubReleaseAPI::releaseId(int idx) const {
 	Q_D(const QGitHubReleaseAPI);
 	return d->releaseId(idx);
 }
- ulong QGitHubReleaseAPI::authorId(int idx) const {
-	 Q_D(const QGitHubReleaseAPI);
-	 return d->authorId(idx);
- }
+ulong QGitHubReleaseAPI::authorId(int idx) const {
+	Q_D(const QGitHubReleaseAPI);
+	return d->authorId(idx);
+}
 
 QUrl QGitHubReleaseAPI::avatarUrl(int idx) const {
 	Q_D(const QGitHubReleaseAPI);
@@ -192,9 +197,19 @@ QByteArray QGitHubReleaseAPI::tarBall(int idx) const {
 	return d->tarBall(idx);
 }
 
+qint64 QGitHubReleaseAPI::tarBall(QFile &of, int idx) const {
+	Q_D(const QGitHubReleaseAPI);
+	return d->tarBall(of, idx);
+}
+
 QByteArray QGitHubReleaseAPI::zipBall(int idx) const {
 	Q_D(const QGitHubReleaseAPI);
 	return d->zipBall(idx);
+}
+
+qint64 QGitHubReleaseAPI::zipBall(QFile &of, int idx) const {
+	Q_D(const QGitHubReleaseAPI);
+	return d->zipBall(of, idx);
 }
 
 QString QGitHubReleaseAPI::targetCommitish(int idx) const {
@@ -230,4 +245,19 @@ QUrl QGitHubReleaseAPI::authorHtmlUrl(int idx) const {
 QDateTime QGitHubReleaseAPI::createdAt(int idx) const {
 	Q_D(const QGitHubReleaseAPI);
 	return d->createdAt(idx);
+}
+
+void QGitHubReleaseAPI::cancel() {
+	Q_D(QGitHubReleaseAPI);
+	return d->cancel();
+}
+
+QByteArray QGitHubReleaseAPI::downloadToMemory(const QUrl &url) const {
+	Q_D(const QGitHubReleaseAPI);
+	return d->downloadFile(url);
+}
+
+qint64 QGitHubReleaseAPI::downloadToFile(const QUrl url, QFile &of) const {
+	Q_D(const QGitHubReleaseAPI);
+	return d->downloadFile(url, &of);
 }

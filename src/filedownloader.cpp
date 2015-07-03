@@ -23,8 +23,8 @@
 
 FileDownloader::FileDownloader(const QUrl &url, const char *userAgent,
 							   const QString &eTag, QObject *p) : QObject(p), m_WebCtrl(),
-	m_DownloadedData(), m_url(url), m_rawHeaderPairs(), m_reply(0L), m_userData(0L),
-	m_request(url) {
+	m_DownloadedData(), m_url(url), m_rawHeaderPairs(), m_reply(0L), m_request(url),
+	m_userAgent(userAgent), m_generic(false) {
 
 	QObject::connect(&m_WebCtrl, SIGNAL(finished(QNetworkReply*)),
 					 SLOT(fileDownloaded(QNetworkReply*)));
@@ -36,22 +36,27 @@ FileDownloader::FileDownloader(const QUrl &url, const char *userAgent,
 
 	m_request.setSslConfiguration(cnf);
 	m_request.setRawHeader("User-Agent", QByteArray(userAgent));
-	m_request.setRawHeader("Accept", QByteArray("application/vnd.github.v3.raw+json"));
 
 	if(!eTag.isEmpty()) m_request.setRawHeader("If-None-Match", eTag.toLatin1());
 
 	m_request.setAttribute(QNetworkRequest::CacheLoadControlAttribute,
-						 QNetworkRequest::AlwaysNetwork);
+						   QNetworkRequest::AlwaysNetwork);
 }
 
 FileDownloader::~FileDownloader() {}
 
-void FileDownloader::start() const {
+QNetworkReply *FileDownloader::start() const {
+
+	m_request.setRawHeader("Accept", !m_generic ?
+							   QByteArray("application/vnd.github.v3.raw+json") :
+							   QByteArray("application/octet-stream"));
 
 	m_reply = m_WebCtrl.get(m_request);
 
 	QObject::connect(m_reply, SIGNAL(downloadProgress(qint64,qint64)),
 					 this, SLOT(downloadProgress(qint64,qint64)));
+
+	return m_reply;
 }
 
 void FileDownloader::setCacheLoadControlAttribute(QNetworkRequest::CacheLoadControl att) {
@@ -59,17 +64,23 @@ void FileDownloader::setCacheLoadControlAttribute(QNetworkRequest::CacheLoadCont
 }
 
 void FileDownloader::downloadProgress(qint64 bytesReceived, qint64 bytesTotal) {
-	emit progress(bytesReceived, bytesTotal, m_userData);
+	emit progress(bytesReceived, bytesTotal);
 }
 
 void FileDownloader::fileDownloaded(QNetworkReply *pReply) {
 
-	if(pReply->error() != QNetworkReply::NoError) {
-		emit error(pReply->errorString(), m_userData);
+	if(m_reply->error() != QNetworkReply::NoError) {
+
+		if(m_reply->error() != QNetworkReply::OperationCanceledError) {
+			emit error(m_reply->errorString());
+		} else {
+			emit canceled();
+		}
+
 	} else {
 
 		QVariant redirectTarget =
-				pReply->attribute(QNetworkRequest::RedirectionTargetAttribute);
+				m_reply->attribute(QNetworkRequest::RedirectionTargetAttribute);
 
 		if(!redirectTarget.isNull()) {
 
@@ -80,22 +91,40 @@ void FileDownloader::fileDownloaded(QNetworkReply *pReply) {
 								this, SLOT(downloadProgress(qint64,qint64)));
 
 			m_reply->deleteLater();
-
 			m_request.setUrl(m_url);
 			m_reply = m_WebCtrl.get(m_request);
 
 			QObject::connect(m_reply, SIGNAL(downloadProgress(qint64,qint64)),
 							 this, SLOT(downloadProgress(qint64,qint64)));
 
+			emit replyChanged(m_reply);
+
 		} else {
-			m_rawHeaderPairs = pReply->rawHeaderPairs();
+#if QT_VERSION >= QT_VERSION_CHECK(4, 7, 0)
+			m_rawHeaderPairs = m_reply->rawHeaderPairs();
+#else
+			m_rawHeaderPairs.clear();
+
+			foreach(const QByteArray &rhk, m_reply->rawHeaderList()) {
+				m_rawHeaderPairs.append(RAWHEADERPAIR(rhk, m_reply->rawHeader(rhk)));
+			}
+#endif
+
 			m_DownloadedData = pReply->readAll();
-			pReply->deleteLater();
-			emit downloaded(*this, m_userData);
+			m_reply->deleteLater();
+			emit downloaded(*this);
 		}
 	}
 }
 
 const QByteArray &FileDownloader::downloadedData() const {
 	return m_DownloadedData;
+}
+
+void FileDownloader::abort() const {
+	m_reply->abort();
+}
+
+void FileDownloader::cancel(const FileDownloader &fd) {
+	fd.abort();
 }

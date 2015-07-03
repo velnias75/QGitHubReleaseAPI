@@ -21,11 +21,14 @@
 #define QGITHUBRELEASEAPI_P_H
 
 #include <QUrl>
+#include <QFile>
 #include <QDateTime>
 #include <QVariantList>
 
 #include "export.h"
 
+class QFile;
+class QNetworkReply;
 class FileDownloader;
 
 class QGITHUBRELEASEAPI_NO_EXPORT QGitHubReleaseAPIPrivate : public QObject {
@@ -46,8 +49,10 @@ public:
 		m_userAgent = ua;
 	}
 
-	QUrl apiUrl() const;
+	QByteArray downloadFile(const QUrl &u, bool generic = false) const;
+	qint64 downloadFile(const QUrl &u, QIODevice *of, bool generic = false) const;
 
+	QUrl apiUrl() const;
 	int entries() const;
 
 	inline QUrl releaseUrl(int idx) const {
@@ -75,7 +80,10 @@ public:
 	}
 
 	QByteArray tarBall(int idx) const;
+	qint64 tarBall(QFile &of, int idx) const;
+
 	QByteArray zipBall(int idx) const;
+	qint64 zipBall(QFile &of, int idx) const;
 
 	inline QUrl zipBallUrl(int idx) const {
 		return entry<QUrl>(idx, "zipball_url");
@@ -156,26 +164,45 @@ public:
 		m_eTag = eTag;
 	}
 
+public slots:
+	void cancel();
+
 private slots:
-	void downloaded(const FileDownloader &, QVariant *);
-	void fileDownloaded(const FileDownloader &, QVariant *);
-	void fdError(const QString &, QVariant *);
-	void fileDownloadError(const QString &, QVariant *);
-	void downloadProgress(qint64, qint64, QVariant *);
-	void fileDownloadProgress(qint64, qint64, QVariant *);
+	void readChunk();
+	void updateReply(QNetworkReply *);
+	void downloaded(const FileDownloader &);
+	void fdError(const QString &);
+	void fdCanceled();
+	void fileDownloadError(const QString &);
+	void downloadProgress(qint64, qint64);
+	void fileDownloadProgress(qint64, qint64);
 
 signals:
 	void available();
+	void canceled();
 	void error(const QString &) const;
 	void progress(qint64, qint64);
-	void avatarStopWait();
 
 private:
 	void init() const;
 	QVariant parseJSon(const QByteArray &ba, QString &err) const;
 	bool dataAvailable() const;
 
-	QByteArray downloadFile(const QUrl &u) const;
+	template<QUrl (QGitHubReleaseAPIPrivate::*T)(int) const>
+	qint64 fileToFileDownload(QFile *of, int idx) const {
+
+		int ok = 0;
+
+		if(of && !of->isOpen()) ok = of->open(QFile::WriteOnly);
+
+		if(ok) {
+			return downloadFile((this->*T)(idx), of);
+		} else if(of) {
+			emit error(of->errorString());
+		}
+
+		return ok;
+	}
 
 	template<class T>
 	T entry(int idx, const QString &id, const QString &subId = QString::null) const {
@@ -211,6 +238,10 @@ private:
 	QDateTime m_rateLimitReset;
 	mutable QMap<int, QImage> m_avatars;
 	QString m_eTag;
+	mutable QIODevice *m_dlOutputFile;
+	mutable qint64 m_readBytes;
+	mutable QNetworkReply *m_readReply;
+	mutable qint64 m_bytesAvail;
 };
 
 #endif // QGITHUBRELEASEAPI_P_H
