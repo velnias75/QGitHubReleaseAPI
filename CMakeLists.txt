@@ -16,7 +16,7 @@ find_package(Qt5Network)
 CHECK_INCLUDE_FILE(mkdio.h HAVE_MKDIO_H)
 find_library(MARKDOWN_LIBRARIES markdown)
 
-execute_process(COMMAND qmake -query QMAKE_MKSPECS OUTPUT_VARIABLE QMAKEMKSPECS
+execute_process(COMMAND qmake -query QT_HOST_DATA OUTPUT_VARIABLE QMAKEMKSPECS
 								OUTPUT_STRIP_TRAILING_WHITESPACE)
 
 add_definitions(${QT_DEFINITIONS})
@@ -69,4 +69,4 @@ install(TARGETS qgithubreleaseapi_static DESTINATION lib)
 install(FILES src/qgithubreleaseapi.h DESTINATION include/qgithubreleaseapi)
 install(FILES ${PROJECT_BINARY_DIR}/export.h DESTINATION include/qgithubreleaseapi)
 install(FILES ${PROJECT_BINARY_DIR}/qgithubreleaseapi.pc DESTINATION lib/pkgconfig)
-install(FILES qgithubreleaseapi.prf DESTINATION ${QMAKEMKSPECS}/features)
+install(FILES qgithubreleaseapi.prf DESTINATION ${QMAKEMKSPECS}/mkspecs/features)
