@@ -9,6 +9,7 @@ set(CMAKE_AUTOMOC ON)
 
 include(GenerateExportHeader)
 include(CheckIncludeFile)
+include(FindDoxygen)
 
 find_package(Qt5Gui)
 find_package(Qt5Network)
@@ -59,6 +60,11 @@ target_link_libraries(qgithubreleaseapi ${MARKDOWN_LIBRARIES})
 endif(${HAVE_MKDIO_H})
 endif(${BUILD_SHARED_LIBS})
 
+if(${DOXYGEN_FOUND})
+configure_file(${CMAKE_SOURCE_DIR}/Doxyfile.in ${PROJECT_BINARY_DIR}/Doxyfile @ONLY)
+execute_process(COMMAND ${DOXYGEN_EXECUTABLE} WORKING_DIRECTORY ${PROJECT_BINARY_DIR})
+endif(${DOXYGEN_FOUND})
+
 configure_file(${CMAKE_SOURCE_DIR}/qgithubreleaseapi.pc.in
 			   ${PROJECT_BINARY_DIR}/qgithubreleaseapi.pc @ONLY)
 if(${BUILD_SHARED_LIBS})
@@ -70,3 +76,8 @@ install(FILES src/qgithubreleaseapi.h DESTINATION include/qgithubreleaseapi)
 install(FILES ${PROJECT_BINARY_DIR}/export.h DESTINATION include/qgithubreleaseapi)
 install(FILES ${PROJECT_BINARY_DIR}/qgithubreleaseapi.pc DESTINATION lib/pkgconfig)
 install(FILES qgithubreleaseapi.prf DESTINATION ${QMAKEMKSPECS}/mkspecs/features)
+if(${DOXYGEN_FOUND})
+install(DIRECTORY ${PROJECT_BINARY_DIR}/html
+                DESTINATION share/doc/QGitHubReleaseAPI-${PROJECT_VERSION}
+                PATTERN "*.md5" EXCLUDE PATTERN "*.map" EXCLUDE)
+endif(${DOXYGEN_FOUND})
