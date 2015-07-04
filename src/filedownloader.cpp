@@ -50,9 +50,13 @@ QNetworkReply *FileDownloader::start(QGitHubReleaseAPI::TYPE type) const {
 	QString sType;
 
 	switch(type) {
+#ifdef HAVE_MKDIO_H
 	case QGitHubReleaseAPI::RAW: sType = "raw"; break;
-	case QGitHubReleaseAPI::TEXT: sType = "text"; break;
+#else
+	case QGitHubReleaseAPI::RAW:
+#endif
 	case QGitHubReleaseAPI::HTML: sType = "html"; break;
+	case QGitHubReleaseAPI::TEXT: sType = "text"; break;
 	}
 
 	m_request.setRawHeader("Accept", !m_generic ?
