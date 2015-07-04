@@ -8,6 +8,7 @@ include(GenerateExportHeader)
 include(CheckCCompilerFlag)
 include(CheckIncludeFile)
 include(FindPkgConfig)
+include(FindDoxygen)
 
 find_package(Qt4)
 pkg_search_module(QJSON QJson)
@@ -85,6 +86,11 @@ set_property(TARGET qgithubreleaseapi_static PROPERTY
 configure_file(${CMAKE_SOURCE_DIR}/qgithubreleaseapi.pc.in
 			   ${PROJECT_BINARY_DIR}/qgithubreleaseapi.pc @ONLY)
 
+if(${DOXYGEN_FOUND})
+configure_file(${CMAKE_SOURCE_DIR}/Doxyfile.in ${PROJECT_BINARY_DIR}/Doxyfile @ONLY)
+execute_process(COMMAND ${DOXYGEN_EXECUTABLE} WORKING_DIRECTORY ${PROJECT_BINARY_DIR})
+endif(${DOXYGEN_FOUND})
+
 if(${BUILD_SHARED_LIBS})
 install(TARGETS qgithubreleaseapi DESTINATION lib)
 endif(${BUILD_SHARED_LIBS})
@@ -94,3 +100,8 @@ install(FILES src/qgithubreleaseapi.h DESTINATION include/qgithubreleaseapi)
 install(FILES ${PROJECT_BINARY_DIR}/export.h DESTINATION include/qgithubreleaseapi)
 install(FILES ${PROJECT_BINARY_DIR}/qgithubreleaseapi.pc DESTINATION lib/pkgconfig)
 install(FILES qgithubreleaseapi.prf DESTINATION ${QMAKEMKSPECS}/features)
+if(${DOXYGEN_FOUND})
+install(DIRECTORY ${PROJECT_BINARY_DIR}/html
+		DESTINATION share/doc/QGitHubReleaseAPI-${PROJECT_VERSION}
+		PATTERN "*.md5" EXCLUDE PATTERN "*.map" EXCLUDE)
+endif(${DOXYGEN_FOUND})
