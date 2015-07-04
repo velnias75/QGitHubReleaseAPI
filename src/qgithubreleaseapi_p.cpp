@@ -213,12 +213,12 @@ void QGitHubReleaseAPIPrivate::fdCanceled() {
 }
 
 QString QGitHubReleaseAPIPrivate::body(int idx) const {
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0) || defined(QJSON_FOUND)) && defined(HAVE_MKDIO_H)
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0) || defined(QJSON_FOUND))
 
 	if(dataAvailable()) {
 
 		if(entries() > idx) {
-
+#ifdef HAVE_MKDIO_H
 			const QString bMD(m_vdata[idx].toMap()["body"].toString());
 
 #if QT_VERSION >= QT_VERSION_CHECK(4, 5, 0)
@@ -226,8 +226,10 @@ QString QGitHubReleaseAPIPrivate::body(int idx) const {
 #else
 			const mkd_flag_t f = MKD_TOC|MKD_AUTOLINK|MKD_NOEXT|MKD_NOHEADER|MKD_NOIMAGE;
 #endif
+#endif
 
 			switch(m_type) {
+#ifdef HAVE_MKDIO_H
 			case QGitHubReleaseAPI::RAW: {
 					MMIOT *doc = 0L;
 					char *html = 0L;
@@ -247,6 +249,9 @@ QString QGitHubReleaseAPIPrivate::body(int idx) const {
 					}
 
 				} break;
+#else
+			case QGitHubReleaseAPI::RAW:
+#endif
 			case QGitHubReleaseAPI::HTML: {
 					QString b(m_vdata[idx].toMap()["body_html"].toString());
 					return embedImages(b);
@@ -313,8 +318,10 @@ QString QGitHubReleaseAPIPrivate::embedImages(QString &b) const {
 			 PROJECTVERSION
 			 "\">heiko@rangun.de</a>&gt;");
 
+#ifdef HAVE_MKDIO_H
 	if(!m_type) b.append(QString("<br />Markdown rendered with <em>libmarkdown %1</em>").
 						 arg(markdown_version));
+#endif
 
 	return b.append("</p>");
 }
