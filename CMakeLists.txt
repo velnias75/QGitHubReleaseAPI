@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.7)
 
 project(QGitHubReleaseAPI)
 
-set(PROJECT_VERSION 0.4)
+set(PROJECT_VERSION 0.5)
 
 include(GenerateExportHeader)
 include(CheckCCompilerFlag)
