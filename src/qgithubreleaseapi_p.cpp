@@ -319,8 +319,10 @@ QString QGitHubReleaseAPIPrivate::embedImages(QString &b) const {
 			 "\">heiko@rangun.de</a>&gt;");
 
 #ifdef HAVE_MKDIO_H
-	if(!m_type) b.append(QString("<br />Markdown rendered with <em>libmarkdown %1</em>").
-						 arg(markdown_version));
+	if(m_type == QGitHubReleaseAPI::RAW) {
+		b.append(QString("<br />Markdown rendered with <em>libmarkdown %1</em>").
+				 arg(markdown_version));
+	}
 #endif
 
 	return b.append("</p>");
