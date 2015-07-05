@@ -21,10 +21,10 @@
 
 #include "filedownloader.h"
 
-FileDownloader::FileDownloader(const QUrl &url, const char *userAgent,
-							   const QString &eTag, QObject *p) : QObject(p), m_WebCtrl(),
-	m_DownloadedData(), m_url(url), m_rawHeaderPairs(), m_reply(0L), m_request(url),
-	m_userAgent(userAgent), m_generic(false) {
+FileDownloader::FileDownloader(const QUrl &url, const char *userAgent, const QString &eTag,
+							   QObject *p) : QObject(p), m_WebCtrl(), m_DownloadedData(),
+	m_url(url), m_rawHeaderPairs(), m_reply(0L), m_request(url), m_userAgent(userAgent),
+	m_generic(false) {
 
 	QObject::connect(&m_WebCtrl, SIGNAL(finished(QNetworkReply*)),
 					 SLOT(fileDownloaded(QNetworkReply*)));

@@ -20,15 +20,10 @@
 #ifndef QGITHUBRELEASEAPI_P_H
 #define QGITHUBRELEASEAPI_P_H
 
-#include <QUrl>
 #include <QFile>
-#include <QDateTime>
-#include <QVariantList>
 
-#include "export.h"
 #include "qgithubreleaseapi.h"
 
-class QFile;
 class QNetworkReply;
 class FileDownloader;
 

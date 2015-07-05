@@ -17,10 +17,6 @@
  * along with QGitHubReleaseAPI.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QImage>
-#include <QDateTime>
-
-#include "qgithubreleaseapi.h"
 #include "qgithubreleaseapi_p.h"
 
 QGitHubReleaseAPI::QGitHubReleaseAPI(const QUrl &apiUrl, bool multi, QObject *p) : QObject(p),
@@ -40,7 +36,7 @@ QGitHubReleaseAPI::QGitHubReleaseAPI(const QString &user, const QString &repo, b
 }
 
 QGitHubReleaseAPI::QGitHubReleaseAPI(const QString &user, const QString &repo, TYPE type,
-				  bool latest, QObject *p) : QObject(p),
+									 bool latest, QObject *p) : QObject(p),
 	d_ptr(new QGitHubReleaseAPIPrivate(user, repo, latest, type, this)) {
 	init();
 }
@@ -52,7 +48,7 @@ QGitHubReleaseAPI::QGitHubReleaseAPI(const QString &user, const QString &repo, c
 }
 
 QGitHubReleaseAPI::QGitHubReleaseAPI(const QString &user, const QString &repo, const QString &tag,
-				  TYPE type, QObject *p) : QObject(p),
+									 TYPE type, QObject *p) : QObject(p),
 	d_ptr(new QGitHubReleaseAPIPrivate(user, repo, tag, type, this)) {
 	init();
 }
@@ -76,7 +72,7 @@ QGitHubReleaseAPI::QGitHubReleaseAPI(const QString &user, const QString &repo, i
 }
 
 QGitHubReleaseAPI::QGitHubReleaseAPI(const QString &user, const QString &repo, int perPage,
-									TYPE type, QObject *p) : QObject(p),
+									 TYPE type, QObject *p) : QObject(p),
 	d_ptr(new QGitHubReleaseAPIPrivate(user, repo, perPage, type, this)) {
 	init();
 }
