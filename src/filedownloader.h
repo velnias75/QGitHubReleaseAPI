@@ -20,12 +20,8 @@
 #ifndef FILEDOWNLOADER_H
 #define FILEDOWNLOADER_H
 
-#include <QUrl>
 #include <QNetworkReply>
-#include <QNetworkRequest>
-#include <QNetworkAccessManager>
 
-#include "export.h"
 #include "qgithubreleaseapi.h"
 
 class QGITHUBRELEASEAPI_NO_EXPORT FileDownloader : public QObject {

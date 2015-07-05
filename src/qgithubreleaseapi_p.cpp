@@ -17,14 +17,10 @@
  * along with QGitHubReleaseAPI.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QImage>
+#include <QBuffer>
 #include <QRegExp>
 #include <QEventLoop>
 #include <QMutexLocker>
-
-#if QT_VERSION >= QT_VERSION_CHECK(4, 5, 0)
-#include <QBuffer>
-#endif
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0) || defined(QJSON_FOUND)
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
@@ -444,5 +440,12 @@ qint64 QGitHubReleaseAPIPrivate::zipBall(QFile &of, int idx) const {
 }
 
 void QGitHubReleaseAPIPrivate::cancel() {
-	if(m_readReply && m_readReply->isRunning()) m_readReply->abort();
+
+#if QT_VERSION >= QT_VERSION_CHECK(4, 5, 0)
+	if(m_readReply && m_readReply->isRunning()) {
+#else
+	if(m_readReply && m_readReply->isRunning()) {
+#endif
+		m_readReply->abort();
+	}
 }
