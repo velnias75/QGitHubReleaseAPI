@@ -82,14 +82,6 @@ public:
 	/**
 	 * @brief Creates an @c %QGitHubReleaseAPI instance
 	 * @param apiUrl
-	 * @param multi
-	 * @param parent
-	 */
-	explicit QGitHubReleaseAPI(const QUrl &apiUrl, bool multi = true, QObject *parent = 0);
-
-	/**
-	 * @brief Creates an @c %QGitHubReleaseAPI instance
-	 * @param apiUrl
 	 * @param type
 	 * @param multi
 	 * @param parent
@@ -98,13 +90,11 @@ public:
 
 	/**
 	 * @brief Creates an @c %QGitHubReleaseAPI instance
-	 * @param user
-	 * @param repo
-	 * @param latest
+	 * @param apiUrl
+	 * @param multi
 	 * @param parent
 	 */
-	QGitHubReleaseAPI(const QString &user, const QString &repo, bool latest = true,
-					  QObject *parent = 0);
+	explicit QGitHubReleaseAPI(const QUrl &apiUrl, bool multi = true, QObject *parent = 0);
 
 	/**
 	 * @brief Creates an @c %QGitHubReleaseAPI instance
@@ -121,10 +111,10 @@ public:
 	 * @brief Creates an @c %QGitHubReleaseAPI instance
 	 * @param user
 	 * @param repo
-	 * @param tag
+	 * @param latest
 	 * @param parent
 	 */
-	QGitHubReleaseAPI(const QString &user, const QString &repo, const QString &tag,
+	QGitHubReleaseAPI(const QString &user, const QString &repo, bool latest = true,
 					  QObject *parent = 0);
 
 	/**
@@ -145,7 +135,7 @@ public:
 	 * @param tag
 	 * @param parent
 	 */
-	QGitHubReleaseAPI(const QString &user, const QString &repo, const char *tag,
+	QGitHubReleaseAPI(const QString &user, const QString &repo, const QString &tag,
 					  QObject *parent = 0);
 
 	/**
@@ -163,10 +153,10 @@ public:
 	 * @brief Creates an @c %QGitHubReleaseAPI instance
 	 * @param user
 	 * @param repo
-	 * @param perPage
+	 * @param tag
 	 * @param parent
 	 */
-	QGitHubReleaseAPI(const QString &user, const QString &repo, int perPage,
+	QGitHubReleaseAPI(const QString &user, const QString &repo, const char *tag,
 					  QObject *parent = 0);
 
 	/**
@@ -178,6 +168,16 @@ public:
 	 * @param parent
 	 */
 	QGitHubReleaseAPI(const QString &user, const QString &repo, int perPage, TYPE type,
+					  QObject *parent = 0);
+
+	/**
+	 * @brief Creates an @c %QGitHubReleaseAPI instance
+	 * @param user
+	 * @param repo
+	 * @param perPage
+	 * @param parent
+	 */
+	QGitHubReleaseAPI(const QString &user, const QString &repo, int perPage,
 					  QObject *parent = 0);
 
 	virtual ~QGitHubReleaseAPI();
