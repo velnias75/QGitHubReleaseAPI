@@ -153,7 +153,7 @@ private:
 	}
 
 private:
-	static const char *m_userAgent QGITHUBRELEASEAPI_EXPORT;
+	static const char *m_userAgent;
 	static const char *m_outOfBoundsError;
 	static const char *m_noDataAvailableError;
 
