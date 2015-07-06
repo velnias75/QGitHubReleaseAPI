@@ -51,7 +51,7 @@ if(${COMPILE_NOEXECSTACK})
 set_property(SOURCE ${LIB_SRCS} ${LIB_MOC_SRCS} APPEND PROPERTY COMPILE_FLAGS -Wa,--noexecstack)
 endif(${COMPILE_NOEXECSTACK})
 
-add_compiler_export_flags(EXPORT_FLAGSS)
+add_compiler_export_flags(EXPORT_FLAGS)
 
 qt4_wrap_cpp(LIB_MOC_SRCS ${LIB_MOC_HDRS})
 
@@ -66,9 +66,8 @@ endif(${BUILD_SHARED_LIBS})
 
 if(${BUILD_SHARED_LIBS})
 generate_export_header(qgithubreleaseapi BASE_NAME qgithubreleaseapi EXPORT_FILE_NAME export.h)
-set_property(TARGET qgithubreleaseapi PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_target_properties(qgithubreleaseapi PROPERTIES VERSION 0 SOVERSION 0.0.0)
-set_property(TARGET qgithubreleaseapi PROPERTY COMPILE_FLAGS ${EXPORT_FLAGSS})
+set_property(TARGET qgithubreleaseapi PROPERTY COMPILE_FLAGS ${EXPORT_FLAGS})
 target_link_libraries(qgithubreleaseapi ${QT_LIBRARIES})
 
 if(${QJSON_FOUND})
