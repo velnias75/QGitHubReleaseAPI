@@ -86,6 +86,9 @@ set_property(TARGET qgithubreleaseapi_static PROPERTY
 configure_file(${CMAKE_SOURCE_DIR}/qgithubreleaseapi.pc.in
 			   ${PROJECT_BINARY_DIR}/qgithubreleaseapi.pc @ONLY)
 
+configure_file(${CMAKE_SOURCE_DIR}/qgithubreleaseapi.prf.in
+			   ${PROJECT_BINARY_DIR}/qgithubreleaseapi.prf @ONLY)
+
 if(${DOXYGEN_FOUND})
 configure_file(${CMAKE_SOURCE_DIR}/Doxyfile.in ${PROJECT_BINARY_DIR}/Doxyfile @ONLY)
 execute_process(COMMAND ${DOXYGEN_EXECUTABLE} WORKING_DIRECTORY ${PROJECT_BINARY_DIR})
@@ -99,7 +102,7 @@ install(TARGETS qgithubreleaseapi_static DESTINATION lib)
 install(FILES src/qgithubreleaseapi.h DESTINATION include/qgithubreleaseapi)
 install(FILES ${PROJECT_BINARY_DIR}/export.h DESTINATION include/qgithubreleaseapi)
 install(FILES ${PROJECT_BINARY_DIR}/qgithubreleaseapi.pc DESTINATION lib/pkgconfig)
-install(FILES qgithubreleaseapi.prf DESTINATION ${QMAKEMKSPECS}/features)
+install(FILES ${PROJECT_BINARY_DIR}/qgithubreleaseapi.prf DESTINATION ${QMAKEMKSPECS}/features)
 if(${DOXYGEN_FOUND})
 install(DIRECTORY ${PROJECT_BINARY_DIR}/html
 		DESTINATION share/doc/QGitHubReleaseAPI-${PROJECT_VERSION}
