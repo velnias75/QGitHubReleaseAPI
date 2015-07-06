@@ -52,8 +52,8 @@ QGitHubReleaseAPIPrivate::QGitHubReleaseAPIPrivate(const QUrl &apiUrl, bool mult
 												   QGitHubReleaseAPI::TYPE type, QObject *p) :
 	QObject(p), m_apiDownloader(new FileDownloader(apiUrl, m_userAgent)), m_jsonData(), m_vdata(),
 	m_errorString(), m_rateLimit(0), m_rateLimitRemaining(0), m_singleEntryRequested(!multi),
-	m_rateLimitReset(), m_avatars(), m_eTag(QString::null), m_dlOutputFile(0L), m_readBytes(-1),
-	m_readReply(0L), m_bytesAvail(-1), m_type(type) {
+	m_rateLimitReset(), m_avatars(), m_eTag(QString::null), m_dlOutputFile(0L),
+	m_readBytes(Q_INT64_C(-1)), m_readReply(0L), m_bytesAvail(Q_INT64_C(-1)), m_type(type) {
 	init();
 }
 
@@ -66,7 +66,8 @@ QGitHubReleaseAPIPrivate::QGitHubReleaseAPIPrivate(const QString &user, const QS
 											.arg(latest ? "/latest" : "")), m_userAgent)),
 	m_jsonData(), m_vdata(), m_errorString(), m_rateLimit(0), m_rateLimitRemaining(0),
 	m_singleEntryRequested(latest), m_rateLimitReset(), m_avatars(), m_eTag(QString::null),
-	m_dlOutputFile(0L), m_readBytes(-1), m_readReply(0L), m_bytesAvail(-1), m_type(type) {
+	m_dlOutputFile(0L), m_readBytes(Q_INT64_C(-1)), m_readReply(0L), m_bytesAvail(Q_INT64_C(-1)),
+	m_type(type) {
 	init();
 }
 
@@ -131,7 +132,7 @@ QByteArray QGitHubReleaseAPIPrivate::downloadFile(const QUrl &u, bool generic) c
 	QByteArray ba;
 	QBuffer buf(&ba);
 
-	if(!(buf.open(QIODevice::WriteOnly) && downloadFile(u, &buf, generic) != -1)) {
+	if(!(buf.open(QIODevice::WriteOnly) && downloadFile(u, &buf, generic) != Q_INT64_C(-1))) {
 		emit error(buf.errorString());
 	}
 
@@ -142,7 +143,7 @@ QByteArray QGitHubReleaseAPIPrivate::downloadFile(const QUrl &u, bool generic) c
 
 qint64 QGitHubReleaseAPIPrivate::downloadFile(const QUrl &u, QIODevice *of, bool generic) const {
 
-	m_readBytes = -1;
+	m_readBytes = Q_INT64_C(-1);
 
 	if(of) {
 
@@ -204,7 +205,7 @@ void QGitHubReleaseAPIPrivate::fdError(const QString &err) {
 
 void QGitHubReleaseAPIPrivate::fdCanceled() {
 	qWarning("Download canceled");
-	m_readBytes = -1;
+	m_readBytes = Q_INT64_C(-1);
 	emit canceled();
 }
 

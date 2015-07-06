@@ -31,8 +31,8 @@
 
 #include "export.h"
 
-class QFile;
-class QGitHubReleaseAPIPrivate;
+QT_FORWARD_DECLARE_CLASS(QFile)
+QT_FORWARD_DECLARE_CLASS(QGitHubReleaseAPIPrivate)
 
 /**
  * @brief The @c %QGitHubReleaseAPI class
