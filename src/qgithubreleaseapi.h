@@ -29,7 +29,12 @@
 #include <QDateTime>
 #include <QVariantList>
 
+#ifndef NO_EXPORT_H
 #include "export.h"
+#else
+#define QGITHUBRELEASEAPI_EXPORT
+#define QGITHUBRELEASEAPI_NO_EXPORT
+#endif
 
 QT_FORWARD_DECLARE_CLASS(QFile)
 QT_FORWARD_DECLARE_CLASS(QGitHubReleaseAPIPrivate)
