@@ -67,6 +67,9 @@ endif(${DOXYGEN_FOUND})
 
 configure_file(${CMAKE_SOURCE_DIR}/qgithubreleaseapi.pc.in
 			   ${PROJECT_BINARY_DIR}/qgithubreleaseapi.pc @ONLY)
+configure_file(${CMAKE_SOURCE_DIR}/qgithubreleaseapi.prf.in
+			   ${PROJECT_BINARY_DIR}/qgithubreleaseapi.prf @ONLY)
+			   
 if(${BUILD_SHARED_LIBS})
 install(TARGETS qgithubreleaseapi DESTINATION lib)
 endif(${BUILD_SHARED_LIBS})
@@ -75,7 +78,7 @@ install(TARGETS qgithubreleaseapi_static DESTINATION lib)
 install(FILES src/qgithubreleaseapi.h DESTINATION include/qgithubreleaseapi)
 install(FILES ${PROJECT_BINARY_DIR}/export.h DESTINATION include/qgithubreleaseapi)
 install(FILES ${PROJECT_BINARY_DIR}/qgithubreleaseapi.pc DESTINATION lib/pkgconfig)
-install(FILES qgithubreleaseapi.prf DESTINATION ${QMAKEMKSPECS}/mkspecs/features)
+install(FILES ${PROJECT_BINARY_DIR}/qgithubreleaseapi.prf DESTINATION ${QMAKEMKSPECS}/mkspecs/features)
 if(${DOXYGEN_FOUND})
 install(DIRECTORY ${PROJECT_BINARY_DIR}/html
                 DESTINATION share/doc/QGitHubReleaseAPI-${PROJECT_VERSION}
