@@ -31,6 +31,8 @@ class QGITHUBRELEASEAPI_NO_EXPORT QGitHubReleaseAPIPrivate : public QObject {
 	Q_OBJECT
 	Q_DISABLE_COPY(QGitHubReleaseAPIPrivate)
 
+	template<class> friend class EntryHelper;
+
 public:
 	QGitHubReleaseAPIPrivate(const QUrl &apiUrl, bool multi, QGitHubReleaseAPI::TYPE type,
 							 QObject *parent = 0);
@@ -53,29 +55,24 @@ public:
 	QUrl apiUrl() const;
 	int entries() const;
 
-	inline QUrl releaseUrl(int idx) const {
-		return entry<QUrl>(idx, "url");
-	}
-
-	inline QUrl assetsUrl(int idx) const {
-		return entry<QUrl>(idx, "assets_url");
-	}
-
-	inline QUrl uploadUrl(int idx) const {
-		return entry<QUrl>(idx, "upload_url");
-	}
-
-	inline QUrl releaseHtmlUrl(int idx) const {
-		return entry<QUrl>(idx, "html_url");
-	}
-
-	inline QUrl authorHtmlUrl(int idx) const {
-		return entry<QUrl>(idx, "html_url", "author");
-	}
-
-	inline QUrl tarBallUrl(int idx) const {
-		return entry<QUrl>(idx, "tarball_url");
-	}
+	QUrl releaseUrl(int idx) const;
+	QUrl assetsUrl(int idx) const;
+	QUrl uploadUrl(int idx) const;
+	QUrl releaseHtmlUrl(int idx) const;
+	QUrl authorHtmlUrl(int idx) const;
+	QUrl tarBallUrl(int idx) const;
+	QUrl zipBallUrl(int idx) const;
+	ulong releaseId(int idx) const;
+	QString name(int idx) const;
+	ulong authorId(int idx) const;
+	QString login(int idx) const;
+	QUrl avatarUrl(int idx) const;
+	QString tagName(int idx) const;
+	QDateTime publishedAt(int idx) const;
+	QString targetCommitish(int idx) const;
+	bool isDraft(int idx) const;
+	bool isPreRelease(int idx) const;
+	QDateTime createdAt(int idx) const;
 
 	QByteArray tarBall(int idx) const;
 	qint64 tarBall(QFile &of, int idx) const;
@@ -83,40 +80,8 @@ public:
 	QByteArray zipBall(int idx) const;
 	qint64 zipBall(QFile &of, int idx) const;
 
-	inline QUrl zipBallUrl(int idx) const {
-		return entry<QUrl>(idx, "zipball_url");
-	}
-
-	inline ulong releaseId(int idx) const {
-		return entry<ulong>(idx, "id");
-	}
-
-	inline QString name(int idx) const {
-		return entry<QString>(idx, "name");
-	}
-
 	QString body(int idx) const;
 	QImage avatar(int idx) const;
-
-	inline ulong authorId(int idx) const {
-		return entry<ulong>(idx, "id", "author");
-	}
-
-	inline QString login(int idx) const {
-		return entry<QString>(idx, "login", "author");
-	}
-
-	inline QUrl avatarUrl(int idx) const {
-		return entry<QUrl>(idx, "avatar_url", "author");
-	}
-
-	inline QString tagName(int idx) const {
-		return entry<QString>(idx, "tag_name");
-	}
-
-	inline QDateTime publishedAt(int idx) const {
-		return entry<QDateTime>(idx, "published_at");
-	}
 
 	inline QVariantList toVariantList() const {
 		return m_vdata;
@@ -136,22 +101,6 @@ public:
 
 	inline QDateTime rateLimitReset() const {
 		return m_rateLimitReset;
-	}
-
-	inline QString targetCommitish(int idx) const {
-		return entry<QString>(idx, "target_commitish");
-	}
-
-	inline bool isDraft(int idx) const {
-		return entry<bool>(idx, "draft");
-	}
-
-	inline bool isPreRelease(int idx) const {
-		return entry<bool>(idx, "prerelease");
-	}
-
-	inline QDateTime createdAt(int idx) const {
-		return entry<QDateTime>(idx, "created_at");
 	}
 
 	inline QString eTag() const {
@@ -201,25 +150,6 @@ private:
 		}
 
 		return ok;
-	}
-
-	template<class T>
-	T entry(int idx, const QString &id, const QString &subId = QString::null) const {
-
-		if(dataAvailable()) {
-
-			if(entries() > idx) {
-				return subId.isEmpty() ?  m_vdata[idx].toMap()[id].value<T>() :
-										  m_vdata[idx].toMap()[subId].toMap()[id].value<T>();
-			} else {
-				emit error(QString(m_outOfBoundsError).arg(entries()).arg(idx));
-			}
-
-		} else {
-			emit error(m_noDataAvailableError);
-		}
-
-		return T();
 	}
 
 private:

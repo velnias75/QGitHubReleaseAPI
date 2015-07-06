@@ -37,6 +37,7 @@ extern "C" {
 
 #include "qgithubreleaseapi_p.h"
 #include "filedownloader.h"
+#include "entryhelper.h"
 
 namespace {
 QMutex dlMutex;
@@ -445,8 +446,80 @@ void QGitHubReleaseAPIPrivate::cancel() {
 #if QT_VERSION >= QT_VERSION_CHECK(4, 5, 0)
 	if(m_readReply && m_readReply->isRunning()) {
 #else
-	if(m_readReply && m_readReply->isRunning()) {
+	if(m_readReply) {
 #endif
 		m_readReply->abort();
 	}
+}
+
+QUrl QGitHubReleaseAPIPrivate::releaseUrl(int idx) const {
+	return EntryHelper<QUrl>(*this)(idx, "url");
+}
+
+QUrl QGitHubReleaseAPIPrivate::assetsUrl(int idx) const {
+	return EntryHelper<QUrl>(*this)(idx, "assets_url");
+}
+
+QUrl QGitHubReleaseAPIPrivate::uploadUrl(int idx) const {
+	return EntryHelper<QUrl>(*this)(idx, "upload_url");
+}
+
+QUrl QGitHubReleaseAPIPrivate::releaseHtmlUrl(int idx) const {
+	return EntryHelper<QUrl>(*this)(idx, "html_url");
+}
+
+QUrl QGitHubReleaseAPIPrivate::authorHtmlUrl(int idx) const {
+	return EntryHelper<QUrl>(*this)(idx, "html_url", "author");
+}
+
+QUrl QGitHubReleaseAPIPrivate::tarBallUrl(int idx) const {
+	return EntryHelper<QUrl>(*this)(idx, "tarball_url");
+}
+
+QUrl QGitHubReleaseAPIPrivate::zipBallUrl(int idx) const {
+	return EntryHelper<QUrl>(*this)(idx, "zipball_url");
+}
+
+ulong QGitHubReleaseAPIPrivate::releaseId(int idx) const {
+	return EntryHelper<ulong>(*this)(idx, "id");
+}
+
+QString QGitHubReleaseAPIPrivate::name(int idx) const {
+	return EntryHelper<QString>(*this)(idx, "name");
+}
+
+ulong QGitHubReleaseAPIPrivate::authorId(int idx) const {
+	return EntryHelper<ulong>(*this)(idx, "id", "author");
+}
+
+QString QGitHubReleaseAPIPrivate::login(int idx) const {
+	return EntryHelper<QString>(*this)(idx, "login", "author");
+}
+
+QUrl QGitHubReleaseAPIPrivate::avatarUrl(int idx) const {
+	return EntryHelper<QUrl>(*this)(idx, "avatar_url", "author");
+}
+
+QString QGitHubReleaseAPIPrivate::tagName(int idx) const {
+	return EntryHelper<QString>(*this)(idx, "tag_name");
+}
+
+QDateTime QGitHubReleaseAPIPrivate::publishedAt(int idx) const {
+	return EntryHelper<QDateTime>(*this)(idx, "published_at");
+}
+
+ QString QGitHubReleaseAPIPrivate::targetCommitish(int idx) const {
+	return EntryHelper<QString>(*this)(idx, "target_commitish");
+}
+
+ bool QGitHubReleaseAPIPrivate::isDraft(int idx) const {
+	return EntryHelper<bool>(*this)(idx, "draft");
+}
+
+ bool QGitHubReleaseAPIPrivate::isPreRelease(int idx) const {
+	return EntryHelper<bool>(*this)(idx, "prerelease");
+}
+
+ QDateTime QGitHubReleaseAPIPrivate::createdAt(int idx) const {
+	return EntryHelper<QDateTime>(*this)(idx, "created_at");
 }
