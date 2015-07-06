@@ -98,7 +98,7 @@ void FileDownloader::fileDownloaded(QNetworkReply *pReply) {
 		if(!redirectTarget.isNull()) {
 
 			m_url = m_url.resolved(redirectTarget.toUrl());
-			qWarning("Redirect to: %s", m_url.toString().toLatin1().constData());
+			qWarning("Redirect to: %s", qPrintable(m_url.toString()));
 
 			QObject::disconnect(m_reply, SIGNAL(downloadProgress(qint64,qint64)),
 								this, SLOT(downloadProgress(qint64,qint64)));

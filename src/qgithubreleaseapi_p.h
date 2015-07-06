@@ -24,8 +24,8 @@
 
 #include "qgithubreleaseapi.h"
 
-class QNetworkReply;
-class FileDownloader;
+QT_FORWARD_DECLARE_CLASS(QNetworkReply)
+QT_FORWARD_DECLARE_CLASS(FileDownloader)
 
 class QGITHUBRELEASEAPI_NO_EXPORT QGitHubReleaseAPIPrivate : public QObject {
 	Q_OBJECT
