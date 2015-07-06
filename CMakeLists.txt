@@ -43,8 +43,6 @@ add_library(qgithubreleaseapi SHARED ${LIB_SRCS})
 set_property(TARGET qgithubreleaseapi  PROPERTY COMPILE_FLAGS ${EXPORT_FLAGS})
 generate_export_header(qgithubreleaseapi BASE_NAME qgithubreleaseapi
 					   EXPORT_FILE_NAME export.h)
-
-set_property(TARGET qgithubreleaseapi PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_target_properties(qgithubreleaseapi PROPERTIES VERSION 0 SOVERSION 0.0.0)
 
 target_link_libraries(qgithubreleaseapi Qt5::Gui)
@@ -69,7 +67,7 @@ configure_file(${CMAKE_SOURCE_DIR}/qgithubreleaseapi.pc.in
 			   ${PROJECT_BINARY_DIR}/qgithubreleaseapi.pc @ONLY)
 configure_file(${CMAKE_SOURCE_DIR}/qgithubreleaseapi.prf.in
 			   ${PROJECT_BINARY_DIR}/qgithubreleaseapi.prf @ONLY)
-			   
+
 if(${BUILD_SHARED_LIBS})
 install(TARGETS qgithubreleaseapi DESTINATION lib)
 endif(${BUILD_SHARED_LIBS})
@@ -81,6 +79,6 @@ install(FILES ${PROJECT_BINARY_DIR}/qgithubreleaseapi.pc DESTINATION lib/pkgconf
 install(FILES ${PROJECT_BINARY_DIR}/qgithubreleaseapi.prf DESTINATION ${QMAKEMKSPECS}/mkspecs/features)
 if(${DOXYGEN_FOUND})
 install(DIRECTORY ${PROJECT_BINARY_DIR}/html
-                DESTINATION share/doc/QGitHubReleaseAPI-${PROJECT_VERSION}
-                PATTERN "*.md5" EXCLUDE PATTERN "*.map" EXCLUDE)
+				DESTINATION share/doc/QGitHubReleaseAPI-${PROJECT_VERSION}
+				PATTERN "*.md5" EXCLUDE PATTERN "*.map" EXCLUDE)
 endif(${DOXYGEN_FOUND})
