@@ -86,101 +86,91 @@ public:
 
 	/**
 	 * @brief Creates an @c %QGitHubReleaseAPI instance
-	 * @param apiUrl
-	 * @param type
-	 * @param multi
-	 * @param parent
+	 * @param apiUrl direct URL to retrieve
+	 * @param type the type of the body
+	 * @param multi @c true if multiple results are expected, @c false otherwise
 	 */
 	QGitHubReleaseAPI(const QUrl &apiUrl, TYPE type, bool multi = true, QObject *parent = 0);
 
 	/**
 	 * @brief Creates an @c %QGitHubReleaseAPI instance
-	 * @param apiUrl
-	 * @param multi
-	 * @param parent
+	 * @param apiUrl direct URL to retrieve
+	 * @param multi @c true if multiple results are expected, @c false otherwise
 	 */
 	explicit QGitHubReleaseAPI(const QUrl &apiUrl, bool multi = true, QObject *parent = 0);
 
 	/**
 	 * @brief Creates an @c %QGitHubReleaseAPI instance
-	 * @param user
-	 * @param repo
-	 * @param type
-	 * @param latest
-	 * @param parent
+	 * @param user the GitHub user (aka login)
+	 * @param repo the repository to retrieve release information for
+	 * @param type the type of the body
+	 * @param latest @c true to only retrieve the latest release, @c false for all releases
 	 */
 	QGitHubReleaseAPI(const QString &user, const QString &repo, TYPE type, bool latest = true,
 					  QObject *parent = 0);
 
 	/**
 	 * @brief Creates an @c %QGitHubReleaseAPI instance
-	 * @param user
-	 * @param repo
-	 * @param latest
-	 * @param parent
+	 * @param user the GitHub user (aka login)
+	 * @param repo the repository to retrieve release information for
+	 * @param latest @c true to only retrieve the latest release, @c false for all releases
 	 */
 	QGitHubReleaseAPI(const QString &user, const QString &repo, bool latest = true,
 					  QObject *parent = 0);
 
 	/**
 	 * @brief Creates an @c %QGitHubReleaseAPI instance
-	 * @param user
-	 * @param repo
-	 * @param tag
-	 * @param type
-	 * @param parent
+	 * @param user the GitHub user (aka login)
+	 * @param repo the repository to retrieve release information for
+	 * @param tag the release tag to retrieve
+	 * @param type the type of the body
 	 */
 	QGitHubReleaseAPI(const QString &user, const QString &repo, const QString &tag, TYPE type,
 					  QObject *parent = 0);
 
 	/**
 	 * @brief Creates an @c %QGitHubReleaseAPI instance
-	 * @param user
-	 * @param repo
-	 * @param tag
-	 * @param parent
+	 * @param user the GitHub user (aka login)
+	 * @param repo the repository to retrieve release information for
+	 * @param tag the release tag to retrieve
 	 */
 	QGitHubReleaseAPI(const QString &user, const QString &repo, const QString &tag,
 					  QObject *parent = 0);
 
 	/**
 	 * @brief Creates an @c %QGitHubReleaseAPI instance
-	 * @param user
-	 * @param repo
-	 * @param tag
-	 * @param type
-	 * @param parent
+	 * @param user the GitHub user (aka login)
+	 * @param repo the repository to retrieve release information for
+	 * @param tag the release tag to retrieve
+	 * @param type the type of the body
 	 */
 	QGitHubReleaseAPI(const QString &user, const QString &repo, const char *tag, TYPE type,
 					  QObject *parent = 0);
 
 	/**
 	 * @brief Creates an @c %QGitHubReleaseAPI instance
-	 * @param user
-	 * @param repo
-	 * @param tag
-	 * @param parent
+	 * @param user the GitHub user (aka login)
+	 * @param repo the repository to retrieve release information for
+	 * @param tag the release tag to retrieve
 	 */
 	QGitHubReleaseAPI(const QString &user, const QString &repo, const char *tag,
 					  QObject *parent = 0);
 
 	/**
 	 * @brief Creates an @c %QGitHubReleaseAPI instance
-	 * @param user
-	 * @param repo
-	 * @param perPage
-	 * @param type
-	 * @param parent
+	 * @param user the GitHub user (aka login)
+	 * @param repo the repository to retrieve release information for
+	 * @param perPage the amount of releases to retrieve
+	 * @param type the type of the body
 	 */
 	QGitHubReleaseAPI(const QString &user, const QString &repo, int perPage, TYPE type,
 					  QObject *parent = 0);
 
 	/**
 	 * @brief Creates an @c %QGitHubReleaseAPI instance
-	 * @param user
-	 * @param repo
-	 * @param perPage
-	 * @param parent
+	 * @param user the GitHub user (aka login)
+	 * @param repo the repository to retrieve release information for
+	 * @param perPage the amount of releases to retrieve
 	 */
 	QGitHubReleaseAPI(const QString &user, const QString &repo, int perPage,
 					  QObject *parent = 0);
@@ -188,7 +178,8 @@ public:
 	virtual ~QGitHubReleaseAPI();
 
 	/**
-	 * @brief sets an UserAgent
+	 * @brief Sets an UserAgent
+	 * @note defaults to @em %QGitHubReleaseAPI
 	 * @param userAgent an UserAgent
 	 */
 	static void setUserAgent(const char *userAgent);
@@ -239,13 +230,13 @@ public:
 	void setETag(const QString &eTag);
 
 	/**
-	 * @brief toVariantList
+	 * @brief Gets the release information as @c QVariantList
 	 * @return
 	 */
 	QVariantList toVariantList() const;
 
 	/**
-	 * @brief asJsonData
+	 * @brief Gets the release information as raw Json data
 	 * @return
 	 */
 	QByteArray asJsonData() const;
