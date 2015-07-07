@@ -1,13 +1,8 @@
 INCLUDEPATH += @CMAKE_INSTALL_PREFIX@/include/qgithubreleaseapi
 
-CONFIG(static) { 
-        LIBS += @CMAKE_INSTALL_PREFIX@/lib/libqgithubreleaseapi_static.a
+static|staticlib {
+	QT += network
+	LIBS += @CMAKE_INSTALL_PREFIX@/lib/libqgithubreleaseapi_static.a
 } else {
-        LIBS += -L@CMAKE_INSTALL_PREFIX@/lib -lqgithubreleaseapi
-}
-
-CONFIG(staticlib) {
-        LIBS += @CMAKE_INSTALL_PREFIX@/lib/libqgithubreleaseapi_static.a
-} else {
-        LIBS += -L@CMAKE_INSTALL_PREFIX@/lib -lqgithubreleaseapi
+	LIBS += -L@CMAKE_INSTALL_PREFIX@/lib -lqgithubreleaseapi
 }
