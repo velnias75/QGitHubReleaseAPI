@@ -2,7 +2,9 @@ cmake_minimum_required(VERSION 2.8.7)
 
 project(QGitHubReleaseAPI)
 
-set(PROJECT_VERSION 0.5)
+set(PROJECT_VERSION_MAJ 0)
+set(PROJECT_VERSION_MIN 6)
+set(PROJECT_VERSION_SOV 1)
 
 include(GenerateExportHeader)
 include(CheckCCompilerFlag)
@@ -29,7 +31,7 @@ add_definitions(${QT_DEFINITIONS})
 add_definitions(-DQT_NO_CAST_FROM_BYTEARRAY -DQT_NO_CAST_TO_ASCII -DQT_USE_FAST_OPERATOR_PLUS
 				-DQT_USE_FAST_CONCATENATION -DQT_STRICT_ITERATORS -DQT_NO_URL_CAST_FROM_STRING
 				-D_GLIBCXX_VISIBILITY=0 -D_NDEBUG -DQT_NO_DEBUG_OUTPUT
-				-DPROJECTVERSION="${PROJECT_VERSION}")
+				-DPROJECTVERSION="${PROJECT_VERSION_MAJ}.${PROJECT_VERSION_MIN}")
 
 include_directories(${QT_INCLUDE_DIR})
 include_directories(${PROJECT_BINARY_DIR})
@@ -67,7 +69,9 @@ endif(${BUILD_SHARED_LIBS})
 if(${BUILD_SHARED_LIBS})
 generate_export_header(qgithubreleaseapi BASE_NAME qgithubreleaseapi EXPORT_FILE_NAME export.h)
 set_property(TARGET qgithubreleaseapi PROPERTY POSITION_INDEPENDENT_CODE 1)
-set_target_properties(qgithubreleaseapi PROPERTIES VERSION 0 SOVERSION 0.0.0)
+set_target_properties(qgithubreleaseapi PROPERTIES VERSION
+					  "${PROJECT_VERSION_SOV}.${PROJECT_VERSION_MAJ}.${PROJECT_VERSION_MIN}"
+										SOVERSION ${PROJECT_VERSION_SOV})
 set_property(TARGET qgithubreleaseapi PROPERTY COMPILE_FLAGS ${EXPORT_FLAGS})
 target_link_libraries(qgithubreleaseapi ${QT_LIBRARIES})
 
