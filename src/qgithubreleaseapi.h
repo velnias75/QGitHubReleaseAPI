@@ -29,13 +29,6 @@
 #include <QDateTime>
 #include <QVariantList>
 
-#ifndef NO_EXPORT_H
-#include "export.h"
-#else
-#define QGITHUBRELEASEAPI_EXPORT
-#define QGITHUBRELEASEAPI_NO_EXPORT
-#endif
-
 QT_FORWARD_DECLARE_CLASS(QFile)
 QT_FORWARD_DECLARE_CLASS(QGitHubReleaseAPIPrivate)
 
@@ -43,7 +36,7 @@ QT_FORWARD_DECLARE_CLASS(QGitHubReleaseAPIPrivate)
  * @brief The @c %QGitHubReleaseAPI class
  * @author Heiko Schaefer
  */
-class QGITHUBRELEASEAPI_EXPORT QGitHubReleaseAPI : public QObject {
+class Q_DECL_EXPORT QGitHubReleaseAPI : public QObject {
 	Q_OBJECT
 	Q_DISABLE_COPY(QGitHubReleaseAPI)
 	Q_PROPERTY(QUrl apiUrl READ apiUrl) ///< the apiUrl

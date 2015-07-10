@@ -23,7 +23,7 @@
 #include "qgithubreleaseapi_p.h"
 
 template<class T>
-class EntryHelper {
+class Q_DECL_HIDDEN EntryHelper {
 	Q_DISABLE_COPY(EntryHelper)
 public:
 	explicit inline EntryHelper(const QGitHubReleaseAPIPrivate& a) : api(a) {}
