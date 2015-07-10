@@ -27,7 +27,7 @@
 QT_FORWARD_DECLARE_CLASS(QNetworkReply)
 QT_FORWARD_DECLARE_CLASS(FileDownloader)
 
-class QGITHUBRELEASEAPI_NO_EXPORT QGitHubReleaseAPIPrivate : public QObject {
+class Q_DECL_HIDDEN QGitHubReleaseAPIPrivate : public QObject {
 	Q_OBJECT
 	Q_DISABLE_COPY(QGitHubReleaseAPIPrivate)
 

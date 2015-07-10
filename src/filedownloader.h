@@ -24,7 +24,7 @@
 
 #include "qgithubreleaseapi.h"
 
-class QGITHUBRELEASEAPI_NO_EXPORT FileDownloader : public QObject {
+class Q_DECL_HIDDEN FileDownloader : public QObject {
 	Q_OBJECT
 	Q_DISABLE_COPY(FileDownloader)
 public:
