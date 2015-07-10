@@ -80,8 +80,7 @@ target_link_libraries(qgithubreleaseapi ${MARKDOWN_LIBRARIES})
 endif(${HAVE_MKDIO_H})
 endif(${BUILD_SHARED_LIBS})
 
-set_property(TARGET qgithubreleaseapi_static PROPERTY
-			 COMPILE_DEFINITIONS QGITHUBRELEASEAPI_STATIC_DEFINE)
+set_property(TARGET qgithubreleaseapi_static PROPERTY COMPILE_DEFINITIONS QT_STATIC)
 
 configure_file(${CMAKE_SOURCE_DIR}/qgithubreleaseapi.pc.in
 			   ${PROJECT_BINARY_DIR}/qgithubreleaseapi.pc @ONLY)
