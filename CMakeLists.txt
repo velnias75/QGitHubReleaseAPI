@@ -36,15 +36,13 @@ set(LIB_SRCS src/qgithubreleaseapi.cpp src/qgithubreleaseapi_p.cpp src/filedownl
 
 add_compiler_export_flags(EXPORT_FLAGS)
 add_library(qgithubreleaseapi_static STATIC ${LIB_SRCS})
-generate_export_header(qgithubreleaseapi_static EXPORT_FILE_NAME export.h)
-set_property(TARGET qgithubreleaseapi_static PROPERTY
-			 COMPILE_DEFINITIONS QGITHUBRELEASEAPI_STATIC_DEFINE)
+
+set_property(TARGET qgithubreleaseapi_static PROPERTY COMPILE_DEFINITIONS QT_STATIC)
 
 if(${BUILD_SHARED_LIBS})
 add_library(qgithubreleaseapi SHARED ${LIB_SRCS})
 set_property(TARGET qgithubreleaseapi  PROPERTY COMPILE_FLAGS ${EXPORT_FLAGS})
-generate_export_header(qgithubreleaseapi BASE_NAME qgithubreleaseapi
-					   EXPORT_FILE_NAME export.h)
+
 set_target_properties(qgithubreleaseapi PROPERTIES VERSION
 					  "${PROJECT_VERSION_SOV}.${PROJECT_VERSION_MAJ}.${PROJECT_VERSION_MIN}"
 										SOVERSION ${PROJECT_VERSION_SOV})
@@ -78,9 +76,9 @@ endif(${BUILD_SHARED_LIBS})
 
 install(TARGETS qgithubreleaseapi_static DESTINATION lib)
 install(FILES src/qgithubreleaseapi.h DESTINATION include/qgithubreleaseapi)
-install(FILES ${PROJECT_BINARY_DIR}/export.h DESTINATION include/qgithubreleaseapi)
 install(FILES ${PROJECT_BINARY_DIR}/qgithubreleaseapi.pc DESTINATION lib/pkgconfig)
-install(FILES ${PROJECT_BINARY_DIR}/qgithubreleaseapi.prf DESTINATION ${QMAKEMKSPECS}/mkspecs/features)
+install(FILES ${PROJECT_BINARY_DIR}/qgithubreleaseapi.prf
+		DESTINATION ${QMAKEMKSPECS}/mkspecs/features)
 if(${DOXYGEN_FOUND})
 install(DIRECTORY ${PROJECT_BINARY_DIR}/html
 				DESTINATION share/doc/QGitHubReleaseAPI-${PROJECT_VERSION}
