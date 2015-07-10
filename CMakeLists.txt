@@ -59,15 +59,11 @@ qt4_wrap_cpp(LIB_MOC_SRCS ${LIB_MOC_HDRS})
 
 add_library(qgithubreleaseapi_static STATIC ${LIB_MOC_SRCS} ${LIB_SRCS})
 
-generate_export_header(qgithubreleaseapi_static BASE_NAME qgithubreleaseapi
-					   EXPORT_FILE_NAME export.h)
-
 if(${BUILD_SHARED_LIBS})
 add_library(qgithubreleaseapi SHARED ${LIB_MOC_SRCS} ${LIB_SRCS})
 endif(${BUILD_SHARED_LIBS})
 
 if(${BUILD_SHARED_LIBS})
-generate_export_header(qgithubreleaseapi BASE_NAME qgithubreleaseapi EXPORT_FILE_NAME export.h)
 set_property(TARGET qgithubreleaseapi PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_target_properties(qgithubreleaseapi PROPERTIES VERSION
 					  "${PROJECT_VERSION_SOV}.${PROJECT_VERSION_MAJ}.${PROJECT_VERSION_MIN}"
@@ -104,7 +100,6 @@ endif(${BUILD_SHARED_LIBS})
 
 install(TARGETS qgithubreleaseapi_static DESTINATION lib)
 install(FILES src/qgithubreleaseapi.h DESTINATION include/qgithubreleaseapi)
-install(FILES ${PROJECT_BINARY_DIR}/export.h DESTINATION include/qgithubreleaseapi)
 install(FILES ${PROJECT_BINARY_DIR}/qgithubreleaseapi.pc DESTINATION lib/pkgconfig)
 install(FILES ${PROJECT_BINARY_DIR}/qgithubreleaseapi.prf DESTINATION ${QMAKEMKSPECS}/features)
 if(${DOXYGEN_FOUND})
