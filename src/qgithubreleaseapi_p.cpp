@@ -20,7 +20,6 @@
 #include <QBuffer>
 #include <QRegExp>
 #include <QEventLoop>
-#include <QMutexLocker>
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0) || defined(QJSON_FOUND)
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
@@ -38,10 +37,6 @@ extern "C" {
 #include "qgithubreleaseapi_p.h"
 #include "filedownloader.h"
 #include "entryhelper.h"
-
-namespace {
-QMutex dlMutex;
-}
 
 const char *QGitHubReleaseAPIPrivate::m_userAgent = "QGitHubReleaseAPI";
 const char *QGitHubReleaseAPIPrivate::m_outOfBoundsError =
@@ -113,7 +108,6 @@ void QGitHubReleaseAPIPrivate::init() const {
 					 this, SLOT(downloadProgress(qint64,qint64)));
 
 	m_apiDownloader->start(m_type);
-
 }
 
 QImage QGitHubReleaseAPIPrivate::avatar(int idx) const {
@@ -148,8 +142,6 @@ qint64 QGitHubReleaseAPIPrivate::downloadFile(const QUrl &u, QIODevice *of, bool
 
 	if(of) {
 
-		const QMutexLocker lock(&dlMutex);
-
 		QEventLoop wait;
 		FileDownloader dl(u, m_userAgent, m_eTag);
 
@@ -172,7 +164,7 @@ qint64 QGitHubReleaseAPIPrivate::downloadFile(const QUrl &u, QIODevice *of, bool
 
 		QObject::connect(m_readReply, SIGNAL(readyRead()), this, SLOT(readChunk()));
 		wait.exec();
-		QObject::disconnect(m_readReply, SIGNAL(readyRead()), this, SLOT(readChunk()));
+		//QObject::disconnect(m_readReply, SIGNAL(readyRead()), this, SLOT(readChunk()));
 
 		m_dlOutputFile = 0L;
 	}
@@ -183,6 +175,7 @@ qint64 QGitHubReleaseAPIPrivate::downloadFile(const QUrl &u, QIODevice *of, bool
 }
 
 void QGitHubReleaseAPIPrivate::updateReply(QNetworkReply *r) {
+
 	QObject::disconnect(m_readReply, SIGNAL(readyRead()), this, SLOT(readChunk()));
 	QObject::connect(r, SIGNAL(readyRead()), this, SLOT(readChunk()));
 	m_readReply = r;
