@@ -17,13 +17,13 @@
  * along with QGitHubReleaseAPI.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QMutexLocker>
+#include <QSemaphore>
 #include <QSslConfiguration>
 
 #include "filedownloader.h"
 
 namespace {
-QMutex l;
+QSemaphore sem(2);
 }
 
 FileDownloader::FileDownloader(const QUrl &url, const char *userAgent, const QString &eTag,
@@ -52,7 +52,7 @@ FileDownloader::~FileDownloader() {}
 
 QNetworkReply *FileDownloader::start(QGitHubReleaseAPI::TYPE type) const {
 
-	QMutexLocker ml(&l);
+	sem.acquire(1);
 
 	QString sType;
 
@@ -135,6 +135,8 @@ void FileDownloader::fileDownloaded(QNetworkReply *pReply) {
 			emit downloaded(*this);
 		}
 	}
+
+	sem.release(1);
 }
 
 const QByteArray &FileDownloader::downloadedData() const {
@@ -143,6 +145,7 @@ const QByteArray &FileDownloader::downloadedData() const {
 
 void FileDownloader::abort() const {
 	m_reply->abort();
+	sem.release(1);
 }
 
 void FileDownloader::cancel(const FileDownloader &fd) {

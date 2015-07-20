@@ -1,5 +1,6 @@
 src/moc_*
 build/
+win32/
 qgithubreleaseapi.pc
 CMakeLists.txt.user
 debian/
