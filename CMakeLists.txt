@@ -44,8 +44,10 @@ if(${QJSON_FOUND})
 add_definitions(-DQJSON_FOUND)
 endif(${QJSON_FOUND})
 
-set(LIB_SRCS src/qgithubreleaseapi.cpp src/qgithubreleaseapi_p.cpp src/filedownloader.cpp)
-set(LIB_MOC_HDRS src/qgithubreleaseapi.h src/qgithubreleaseapi_p.h src/filedownloader.h)
+set(LIB_SRCS src/qgithubreleaseapi.cpp src/qgithubreleaseapi_p.cpp src/filedownloader.cpp
+			 src/emoji.cpp)
+set(LIB_MOC_HDRS src/qgithubreleaseapi.h src/qgithubreleaseapi_p.h src/filedownloader.h
+				 src/emoji.h)
 
 check_cxx_compiler_flag(-Wa,--noexecstack COMPILE_NOEXECSTACK)
 
