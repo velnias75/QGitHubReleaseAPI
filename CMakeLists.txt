@@ -32,7 +32,7 @@ if(${HAVE_MKDIO_H})
 add_definitions(-DHAVE_MKDIO_H)
 endif(${HAVE_MKDIO_H})
 
-set(LIB_SRCS src/qgithubreleaseapi.cpp src/qgithubreleaseapi_p.cpp src/filedownloader.cpp)
+set(LIB_SRCS src/qgithubreleaseapi.cpp src/qgithubreleaseapi_p.cpp src/filedownloader.cpp src/emoji.cpp)
 
 add_compiler_export_flags(EXPORT_FLAGS)
 add_library(qgithubreleaseapi_static STATIC ${LIB_SRCS})
