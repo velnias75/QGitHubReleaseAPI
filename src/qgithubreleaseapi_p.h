@@ -36,6 +36,8 @@ class Q_DECL_HIDDEN QGitHubReleaseAPIPrivate : public QObject {
 public:
 	QGitHubReleaseAPIPrivate(const QUrl &apiUrl, bool multi, QGitHubReleaseAPI::TYPE type,
 							 QObject *parent = 0);
+	QGitHubReleaseAPIPrivate(const QUrl &apiUrl, bool multi, QGitHubReleaseAPI::TYPE type,
+							 const QString &etag, QObject *parent = 0);
 	QGitHubReleaseAPIPrivate(const QString &user, const QString &repo, bool latest,
 							 QGitHubReleaseAPI::TYPE type, QObject *p = 0);
 	QGitHubReleaseAPIPrivate(const QString &user, const QString &repo, const QString &tag,

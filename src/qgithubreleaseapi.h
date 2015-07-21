@@ -32,6 +32,14 @@
 QT_FORWARD_DECLARE_CLASS(QFile)
 QT_FORWARD_DECLARE_CLASS(QGitHubReleaseAPIPrivate)
 
+#ifndef Q_DECL_EXPORT
+#define Q_DECL_EXPORT __attribute__((visibility ("default")))
+#endif
+
+#ifndef Q_DECL_HIDDEN
+#define Q_DECL_HIDDEN __attribute__((visibility ("hidden")))
+#endif
+
 /**
  * @brief The @c %QGitHubReleaseAPI class
  * @author Heiko Schaefer
