@@ -37,6 +37,7 @@ extern "C" {
 #include "qgithubreleaseapi_p.h"
 #include "filedownloader.h"
 #include "entryhelper.h"
+#include "emoji.h"
 
 const char *QGitHubReleaseAPIPrivate::m_userAgent = "QGitHubReleaseAPI";
 const char *QGitHubReleaseAPIPrivate::m_outOfBoundsError =
@@ -50,6 +51,16 @@ QGitHubReleaseAPIPrivate::QGitHubReleaseAPIPrivate(const QUrl &apiUrl, bool mult
 	m_errorString(), m_rateLimit(0), m_rateLimitRemaining(0), m_singleEntryRequested(!multi),
 	m_rateLimitReset(), m_avatars(), m_eTag(QString::null), m_dlOutputFile(0L),
 	m_readBytes(Q_INT64_C(-1)), m_readReply(0L), m_bytesAvail(Q_INT64_C(-1)), m_type(type) {
+	init();
+}
+
+QGitHubReleaseAPIPrivate::QGitHubReleaseAPIPrivate(const QUrl &apiUrl, bool multi,
+												   QGitHubReleaseAPI::TYPE type,
+												   const QString &etag, QObject *p) :
+	QObject(p), m_apiDownloader(new FileDownloader(apiUrl, m_userAgent)), m_jsonData(), m_vdata(),
+	m_errorString(), m_rateLimit(0), m_rateLimitRemaining(0), m_singleEntryRequested(!multi),
+	m_rateLimitReset(), m_avatars(), m_eTag(etag), m_dlOutputFile(0L), m_readBytes(Q_INT64_C(-1)),
+	m_readReply(0L), m_bytesAvail(Q_INT64_C(-1)), m_type(type) {
 	init();
 }
 
@@ -164,7 +175,6 @@ qint64 QGitHubReleaseAPIPrivate::downloadFile(const QUrl &u, QIODevice *of, bool
 
 		QObject::connect(m_readReply, SIGNAL(readyRead()), this, SLOT(readChunk()));
 		wait.exec();
-		//QObject::disconnect(m_readReply, SIGNAL(readyRead()), this, SLOT(readChunk()));
 
 		m_dlOutputFile = 0L;
 	}
@@ -273,8 +283,35 @@ QString QGitHubReleaseAPIPrivate::body(int idx) const {
 QString QGitHubReleaseAPIPrivate::embedImages(QString &b) const {
 #if QT_VERSION >= QT_VERSION_CHECK(4, 5, 0)
 
+	QRegExp emjRex(":([_a-zA-Z0-9]+):");
 	QRegExp imgRex("<[^<]*img[^>]*src\\s*=\\s*\"([^\"]*)\"[^>]*>");
+
+	Emoji *emoji = 0L;
+
 	int idx = -1;
+
+	while((idx = b.indexOf(emjRex, idx + 1)) != -1) {
+
+		const QString emjKey(emjRex.cap(1));
+
+		if(!emoji) {
+
+			QEventLoop emjLoop;
+			QObject::connect((emoji = new Emoji(eTag())), SIGNAL(available()),
+							 &emjLoop, SLOT(quit()));
+
+			if(!emoji->entries()) emjLoop.exec();
+		}
+
+		b.replace(idx, emjKey.length() + 2, "<img width=\"16\" height=\"16\" alt=\"" + emjKey +
+				  "\" src=\"" + emoji->getUrl(emjKey).toString() + "\">");
+
+		idx += emjKey.length() + 1;
+	}
+
+	delete emoji;
+
+	idx = -1;
 
 	while((idx = b.indexOf(imgRex, idx + 1)) != -1) {
 
@@ -501,18 +538,18 @@ QDateTime QGitHubReleaseAPIPrivate::publishedAt(int idx) const {
 	return EntryHelper<QDateTime>(*this)(idx, "published_at");
 }
 
- QString QGitHubReleaseAPIPrivate::targetCommitish(int idx) const {
+QString QGitHubReleaseAPIPrivate::targetCommitish(int idx) const {
 	return EntryHelper<QString>(*this)(idx, "target_commitish");
 }
 
- bool QGitHubReleaseAPIPrivate::isDraft(int idx) const {
+bool QGitHubReleaseAPIPrivate::isDraft(int idx) const {
 	return EntryHelper<bool>(*this)(idx, "draft");
 }
 
- bool QGitHubReleaseAPIPrivate::isPreRelease(int idx) const {
+bool QGitHubReleaseAPIPrivate::isPreRelease(int idx) const {
 	return EntryHelper<bool>(*this)(idx, "prerelease");
 }
 
- QDateTime QGitHubReleaseAPIPrivate::createdAt(int idx) const {
+QDateTime QGitHubReleaseAPIPrivate::createdAt(int idx) const {
 	return EntryHelper<QDateTime>(*this)(idx, "created_at");
 }
