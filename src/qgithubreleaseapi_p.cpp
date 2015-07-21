@@ -295,7 +295,6 @@ QString QGitHubReleaseAPIPrivate::embedImages(QString &b) const {
 		const QString emjKey(emjRex.cap(1));
 
 		if(!emoji) {
-
 			QEventLoop emjLoop;
 			QObject::connect((emoji = new Emoji(eTag())), SIGNAL(available()),
 							 &emjLoop, SLOT(quit()));
@@ -303,8 +302,12 @@ QString QGitHubReleaseAPIPrivate::embedImages(QString &b) const {
 			if(!emoji->entries()) emjLoop.exec();
 		}
 
-		b.replace(idx, emjKey.length() + 2, "<img width=\"16\" height=\"16\" alt=\"" + emjKey +
-				  "\" src=\"" + emoji->getUrl(emjKey).toString() + "\">");
+		const QUrl &emjUrl(emoji->getUrl(emjKey));
+
+		if(!emjUrl.isEmpty()) {
+			b.replace(idx, emjKey.length() + 2, "<img width=\"16\" height=\"16\" alt=\"" + emjKey +
+					  "\" src=\"" + emjUrl.toString() + "\">");
+		}
 
 		idx += emjKey.length() + 1;
 	}
