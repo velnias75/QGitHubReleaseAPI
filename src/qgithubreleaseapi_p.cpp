@@ -304,7 +304,7 @@ QString QGitHubReleaseAPIPrivate::embedImages(QString &b) const {
 
 		const QUrl &emjUrl(emoji->getUrl(emjKey));
 
-		if(!emjUrl.isEmpty()) {
+		if(emjUrl.isValid()) {
 			b.replace(idx, emjKey.length() + 2, "<img width=\"16\" height=\"16\" alt=\"" + emjKey +
 					  "\" src=\"" + emjUrl.toString() + "\">");
 		}
