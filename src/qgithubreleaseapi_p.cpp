@@ -298,7 +298,6 @@ QString QGitHubReleaseAPIPrivate::embedImages(QString &b) const {
 			QEventLoop emjLoop;
 			QObject::connect((emoji = new Emoji(eTag())), SIGNAL(available()),
 							 &emjLoop, SLOT(quit()));
-
 			if(!emoji->entries()) emjLoop.exec();
 		}
 
