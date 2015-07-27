@@ -81,6 +81,6 @@ install(FILES ${PROJECT_BINARY_DIR}/qgithubreleaseapi.prf
 		DESTINATION ${QMAKEMKSPECS}/mkspecs/features)
 if(${DOXYGEN_FOUND})
 install(DIRECTORY ${PROJECT_BINARY_DIR}/html
-				DESTINATION share/doc/QGitHubReleaseAPI-${PROJECT_VERSION}
+				DESTINATION share/doc/QGitHubReleaseAPI-${PROJECT_VERSION_MAJ}.${PROJECT_VERSION_MIN}
 				PATTERN "*.md5" EXCLUDE PATTERN "*.map" EXCLUDE)
 endif(${DOXYGEN_FOUND})
