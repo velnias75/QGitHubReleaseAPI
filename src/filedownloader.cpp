@@ -17,15 +17,9 @@
  * along with QGitHubReleaseAPI.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QMutexLocker>
 #include <QSslConfiguration>
 
 #include "filedownloader.h"
-
-namespace {
-QMutex dlMutex;
-QMutex finMutex;
-}
 
 FileDownloader::FileDownloader(const QUrl &url, const char *userAgent, const QString &eTag,
 							   QObject *p) : QObject(p), m_WebCtrl(), m_DownloadedData(),
@@ -55,7 +49,6 @@ FileDownloader::~FileDownloader() {}
 
 QNetworkReply *FileDownloader::start(QGitHubReleaseAPI::TYPE type) const {
 
-	QMutexLocker ml(&dlMutex);
 	QString sType;
 
 	switch(type) {
@@ -132,10 +125,7 @@ void FileDownloader::fileDownloaded(QNetworkReply *pReply) {
 			}
 #endif
 
-			{
-				QMutexLocker ml(&finMutex);
-				m_DownloadedData = pReply->readAll();
-			}
+			m_DownloadedData = pReply->readAll();
 
 			m_reply->deleteLater();
 
