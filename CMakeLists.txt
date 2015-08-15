@@ -13,13 +13,14 @@ include(GenerateExportHeader)
 include(CheckIncludeFile)
 include(FindDoxygen)
 
+find_package(Qt5Core)
 find_package(Qt5Gui)
 find_package(Qt5Network)
 
 CHECK_INCLUDE_FILE(mkdio.h HAVE_MKDIO_H)
 find_library(MARKDOWN_LIBRARIES markdown)
 
-execute_process(COMMAND qmake -query QT_HOST_DATA OUTPUT_VARIABLE QMAKEMKSPECS
+execute_process(COMMAND ${Qt5Core_QMAKE_EXECUTABLE} -query QT_HOST_DATA OUTPUT_VARIABLE QMAKEMKSPECS
 								OUTPUT_STRIP_TRAILING_WHITESPACE)
 
 add_definitions(${QT_DEFINITIONS})
